@@ -1,3 +1,2 @@
-print('hello world')
+#Mapp med alla färdiga arrays, tabeller osv
 
-# hej corre!! :)
