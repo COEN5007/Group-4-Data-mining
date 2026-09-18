@@ -19,7 +19,7 @@ for user in all_users:
     if user not in gender["user"].values:
         gender.loc[len(gender)] = [user, 2]
 
-
+# add up the users interaktion
 fbf.columns= ['user_1', 'user_2']
 ammount_fbf=np.zeros(848,dtype=int) 
 for _, row in fbf.iterrows():
