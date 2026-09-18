@@ -27,6 +27,7 @@ for _, row in fbf.iterrows():
     user2 = int(row["user_2"])
 
     ammount_fbf[user1] += 1
-#print(ammount_fbf) 
-#all_users['ammount_fbf']=ammount_fbf
-#print(all_users)
+print(ammount_fbf) #list with all number of friends in the right order
+all_users['ammount_fbf']=ammount_fbf
+print(all_users)
+
