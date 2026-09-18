@@ -12,22 +12,23 @@ calls= pd.read_csv('calls.csv')
 sms= pd.read_csv('sms.csv')
 bt= pd.read_csv('bt_symmetric.csv')
 
-#clean the gender so that all numbers are filled in so it is easier with the user tag
-gender.columns = ["user", "gender"]
-all_users = range(848)
-for user in all_users:
-    if user not in gender["user"].values:
-        gender.loc[len(gender)] = [user, 2]
-# add up the users interaktion
+#Cleaning the gender data, since there are some numbers missing in users,
+#these are written out with gender 2 to make it easeier to merge with the 
+#other lists
 
-fbf.columns= ['user_1', 'user_2']
-ammount_fbf=np.zeros(848,dtype=int) 
-for _, row in fbf.iterrows():
+gender.columns = ["user", "gender"]
+all_users = pd.DataFrame({"user": range(848)}) #Creating a list with all numbers
+gender = all_users.merge(gender, on="user", how="left") #Merging the new list with the gender list
+gender["gender"] = gender["gender"].fillna("2").astype(int) #Write 2 as an integral if there is no annoted gender for that user
+
+fbf.columns= ['user_1', 'user_2'] #Names the columns so both can be checked
+ammount_fbf=np.zeros(848,dtype=int) #New list with zeros from 0->848
+for _, row in fbf.iterrows(): #Checking through the facebook friends
     user1 = int(row["user_1"])
     user2 = int(row["user_2"])
+    ammount_fbf[user1] += 1 #Adds all of the friends to the list
 
-    ammount_fbf[user1] += 1
-print(ammount_fbf) #list with all number of friends in the right order
-all_users['ammount_fbf']=ammount_fbf
-print(all_users)
 
+gender = gender.iloc[:, 1:].reset_index(drop=True)
+gender['ammount_fbf']=ammount_fbf
+print(gender)

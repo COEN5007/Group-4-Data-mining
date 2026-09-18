@@ -27,6 +27,7 @@ for _, row in fbf.iterrows():
     user2 = int(row["user_2"])
 
     ammount_fbf[user1] += 1
-print(ammount_fbf) 
-all_users['ammount_fbf']=ammount_fbf
-print(all_users)
+gender = gender.iloc[:, 1:].reset_index(drop=True)
+gender['ammount_fbf']=ammount_fbf
+print(gender)
+
