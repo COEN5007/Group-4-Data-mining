@@ -14,11 +14,11 @@ bt= pd.read_csv('bt_symmetric.csv')
 
 #clean the gender so that all numbers are filled in so it is easier with the user tag
 gender.columns = ["user", "gender"]
-all_users = range(848)
-for user in all_users:
-    if user not in gender["user"].values:
-        gender.loc[len(gender)] = [user, 2]
-print(all_users)
+
+all_users = pd.DataFrame({"user": range(848)})
+
+gender = all_users.merge(gender, on="user", how="left")
+gender["gender"] = gender["gender"].fillna("2").astype(int)
 
 fbf.columns= ['user_1', 'user_2']
 ammount_fbf=np.zeros(848,dtype=int) 
@@ -27,6 +27,6 @@ for _, row in fbf.iterrows():
     user2 = int(row["user_2"])
 
     ammount_fbf[user1] += 1
-#print(ammount_fbf) 
-#all_users['ammount_fbf']=ammount_fbf
-#print(all_users)
+print(ammount_fbf) 
+all_users['ammount_fbf']=ammount_fbf
+print(all_users)
