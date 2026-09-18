@@ -30,3 +30,6 @@ for _, row in fbf.iterrows():
 print(ammount_fbf) #list with all number of friends in the right order 
 all_users['ammount_fbf']=ammount_fbf
 print(all_users)
+
+
+
