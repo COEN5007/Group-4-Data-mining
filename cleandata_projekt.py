@@ -28,7 +28,6 @@ for _, row in fbf.iterrows(): #Checking through the facebook friends
     user2 = int(row["user_2"])
     ammount_fbf[user1] += 1 #Adds all of the friends to the list
 
-
 gender = gender.iloc[:, 1:].reset_index(drop=True)
 gender['ammount_fbf']=ammount_fbf
 print(gender)
