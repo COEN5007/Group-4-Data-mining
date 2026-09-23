@@ -77,23 +77,31 @@ interactions["duration"] = (
 )
 
 interactions = interactions.drop(
-    columns=["interaction_id"]
-)
+    columns=["interaction_id"])
 #print(interactions)
 
 
 SECONDS_PER_DAY = 24 * 60 * 60
 
+SCHOOL_START = 8 * 60 * 60   # 08:00
+SCHOOL_END = 17 * 60 * 60     # 17:00
+
+interactions["day_of_week"] = (
+    interactions["start"] // SECONDS_PER_DAY
+) % 7
+
 interactions["time_of_day"] = (
     interactions["start"] % SECONDS_PER_DAY
 )
-
-SCHOOL_START = 8 * 60 * 60      # 08:00
-SCHOOL_END = 17 * 60 * 60       # 17:00
-
 interactions["period"] = "O-S-H"
 
 interactions.loc[
+    interactions["day_of_week"] >= 5,
+    "period"
+] = "O-S-H"
+
+interactions.loc[
+    (interactions["day_of_week"] < 5) &
     (interactions["time_of_day"] >= SCHOOL_START) &
     (interactions["time_of_day"] < SCHOOL_END),
     "period"
@@ -272,5 +280,5 @@ bt_columns = [
 ]
 
 total[bt_columns] = total[bt_columns].fillna(-1)
-
+total.to_excel("data_mining_bt.xlsx", index=False)
 print(total)
