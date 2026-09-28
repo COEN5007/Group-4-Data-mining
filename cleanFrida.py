@@ -83,8 +83,8 @@ interactions = interactions.drop(
 
 SECONDS_PER_DAY = 24 * 60 * 60
 
-SCHOOL_START = 8 * 60 * 60   # 08:00
-SCHOOL_END = 17 * 60 * 60     # 17:00
+SCHOOL_START = 8 * 60 * 60 
+SCHOOL_END = 17 * 60 * 60   
 
 interactions["day_of_week"] = (
     interactions["start"] // SECONDS_PER_DAY
@@ -201,7 +201,7 @@ features = pd.DataFrame({
 })
 
 
-# S-H
+#S-H
 school = school.rename(columns={
     "interactions": "Interactions S-H",
     "unique_people": "Unique people S-H",
@@ -218,7 +218,7 @@ features = features.merge(
 ).drop(columns=["user"])
 
 
-# O-S-H
+#O-S-H
 off_school = off_school.rename(columns={
     "interactions": "Interactions O-S-H",
     "unique_people": "Unique people O-S-H",
@@ -235,11 +235,11 @@ features = features.merge(
 ).drop(columns=["user"])
 
 
-# Saknade värden = 0
+#Saknade värden = 0
 features = features.fillna(0)
 
 
-# Avrunda medelvärden
+#Avrunda medelvärden
 features["Average Duration S-H"] = (
     features["Average Duration S-H"].round(2)
 )
