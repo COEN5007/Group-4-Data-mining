@@ -194,7 +194,7 @@ call_columns = [
     "Unique People O-S-H"
 ]
 
-features[call_columns] = features[call_columns].fillna(-1)
+features[call_columns] = features[call_columns].fillna(0)
 
 
 
@@ -206,5 +206,13 @@ features[call_columns] = features[call_columns].fillna(-1)
 #print(calls["timestamp"].describe())     # stora tal, inte 0-847
 #print(calls["period"].value_counts())    # ska visa både S-H och O-S-H
 #print(features[features["Duration S-H"] > 0].head(10))
-
-features.to_csv("calls_features.csv", index=False, sep=";") #skapar en csv-fil (calls_features.csv) som alla kan se
+features = (
+    features
+    .set_index("user_1")
+    .reindex(range(850), fill_value=0)
+    .rename_axis("user_1")
+    .reset_index()
+)
+#print(features)
+features.to_excel("festures_users2.xlsx", index=False)
+#features.to_csv("calls_features.csv", index=False, sep=";") #skapar en csv-fil (calls_features.csv) som alla kan se
