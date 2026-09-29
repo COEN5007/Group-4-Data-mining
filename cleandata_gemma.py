@@ -207,5 +207,5 @@ features[call_columns] = features[call_columns].fillna(0)
 #print(calls["period"].value_counts())    # ska visa både S-H och O-S-H
 print(features[features["Duration S-H"] > 0].head(10))
 
-#features.to_csv("calls_features.csv", index=False, sep=";") #skapar en csv-fil (calls_features.csv) som alla kan se
+features.to_csv("calls_features.csv", index=False, sep=";") #skapar en csv-fil (calls_features.csv) som alla kan se
 #features.to_excel("calls_features.xlsx", index=False)
