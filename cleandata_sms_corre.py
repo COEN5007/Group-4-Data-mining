@@ -245,6 +245,13 @@ users["conversation O-S-H"] = users["conversation O-S-H"].astype(int)
 print(users.head(20))
 
 
+users.to_excel("data_mining_sms.xlsx", index=False)
+
+
+
+
+
+
 
 
 
