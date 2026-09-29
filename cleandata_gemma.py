@@ -2,9 +2,9 @@ import csv
 
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+#from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import matplotlib.pyplot as plt
-import seaborn as sns
+#import seaborn as sns
 
 gender= pd.read_csv("genders.csv")
 fbf= pd.read_csv('fb_friends.csv')
@@ -194,7 +194,7 @@ call_columns = [
     "Unique People O-S-H"
 ]
 
-features[call_columns] = features[call_columns].fillna(-1)
+features[call_columns] = features[call_columns].fillna(0)
 
 
 
@@ -205,6 +205,7 @@ features[call_columns] = features[call_columns].fillna(-1)
 
 #print(calls["timestamp"].describe())     # stora tal, inte 0-847
 #print(calls["period"].value_counts())    # ska visa både S-H och O-S-H
-#print(features[features["Duration S-H"] > 0].head(10))
+print(features[features["Duration S-H"] > 0].head(10))
 
 features.to_csv("calls_features.csv", index=False, sep=";") #skapar en csv-fil (calls_features.csv) som alla kan se
+#features.to_excel("calls_features.xlsx", index=False)
