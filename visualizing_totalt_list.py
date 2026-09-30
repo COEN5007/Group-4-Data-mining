@@ -11,18 +11,31 @@ print(data.describe())
 
 
 # creating a histogram
-#
-plt.hist(data['calls_made_S-H'])
-plt.title('School hours')
-plt.xlabel('duration')
+
+#genders 
+"""plt.hist(data['gender'])
+plt.title('Deviation of gender among the students')
+plt.xlabel('1 = female, 0 = male')
 plt.ylabel('students amt.')
-plt.show
+plt.show()
+"""
+#facebook friends 
+"""plt.hist(data['fb_friends'])
+plt.title('FB friends')
+plt.xlabel('friends amt.')
+plt.ylabel('students amt.')
+plt.show()"""
 
-
-plt.hist(data['calls_made_O-S-H'])
-plt.title('Off school hours')
-plt.xlabel('duration')
+# school hours sms sent
+plt.hist(data['sms_sent_S-H'])
+plt.title(' school hours')
+plt.xlabel('sms sent')
 plt.ylabel('students amt.')
 plt.show()
 
 
+plt.hist(data['sms_sent_S-H'])
+plt.title(' school hours')
+plt.xlabel('duration')
+plt.ylabel('students amt.')
+plt.show()
