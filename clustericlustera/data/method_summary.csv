@@ -1,0 +1,9 @@
+item,value
+Number of students after removing -1,672
+Students removed because of -1,0
+Number of dimensions,4
+Clustering method,KMeans
+Standardisation,StandardScaler
+Random state,50
+Selected number of clusters,2
+Best silhouette score,0.3720836423278283
