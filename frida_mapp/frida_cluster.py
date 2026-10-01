@@ -2,855 +2,357 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import seaborn as sns
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
-FILE = "total_list.csv"
-RANDOM_STATE = 50
-
+FILE = "Final_total_list.csv"
 OUT = "clustering_results"
-PLOTS = os.path.join(OUT, "plots")
-DATA = os.path.join(OUT, "data")
-
+PLOTS, DATA = f"{OUT}/plots", f"{OUT}/data"
 os.makedirs(PLOTS, exist_ok=True)
 os.makedirs(DATA, exist_ok=True)
 
-
-# ============================================================
-# FEATURE GROUPS
-# ============================================================
-
 groups = {
     "digital_school": [
-        "fb_friends",
-        "sms_sent_S-H",
-        "sms_rec_S-H",
-        "sms_unq_people S-H",
-        "sms_convo_S-H",
-        "calls_duration_S-H",
-        "calls_made_S-H",
-        "Calls Received S-H",
-        "Unique People S-H"
+        "fb_friends", "sms_sent_S-H", "sms_rec_S-H", "sms_unq_people S-H",
+        "sms_convo_S-H", "calls_duration_S-H", "calls_made_S-H",
+        "Calls Received S-H", "Unique People S-H"
     ],
-
     "digital_offschool": [
-        "fb_friends",
-        "sms_sent_O-S-H",
-        "sms_rec_O-S-H",
-        "sms_unq_people O-S-H",
-        "sms_convo_O-S-H",
-        "Duration O-S-H",
-        "Calls Made O-S-H",
-        "Calls Received O-S-H",
-        "Unique People O-S-H"
+        "fb_friends", "sms_sent_O-S-H", "sms_rec_O-S-H", "sms_unq_people O-S-H",
+        "sms_convo_O-S-H", "Duration O-S-H", "Calls Made O-S-H",
+        "Calls Received O-S-H", "Unique People O-S-H"
     ],
-
     "social_school": [
-        "bt_interactions_S-H",
-        "bt_avg_duration_S-H",
-        "bt_unq_people_S-H",
-        "bt_outside_interactions_S-H"
+        "bt_interactions_S-H", "bt_avg_duration_S-H",
+        "bt_unq_people_S-H", "bt_outside_interactions_S-H"
     ],
-
     "social_offschool": [
-        "bt_interactions_O-S-H",
-        "bt_avg_duration_O-S-H",
-        "bt_unq_people_O-S-H",
-        "bt_outside_interactions_O-S-H"
+        "bt_interactions_O-S-H", "bt_avg_duration_O-S-H",
+        "bt_unq_people_O-S-H", "bt_outside_interactions_O-S-H"
     ]
 }
 
-
-# ============================================================
-# LOAD + CLEAN
-# ============================================================
-
 features = list(dict.fromkeys(sum(groups.values(), [])))
+df = pd.read_csv(FILE)[["user", "gender"] + features].copy()
 
-df = pd.read_csv(FILE)[
-    ["user", "gender"] + features
-].copy()
-
-for col in features:
-
-    df[col] = (
-        df[col]
-        .astype(str)
-        .str.strip()
+# Clean data
+for c in features:
+    df[c] = pd.to_numeric(
+        df[c].astype(str).str.strip()
         .str.replace("−", "-", regex=False)
-        .str.replace(",", ".", regex=False)
-    )
-
-    df[col] = pd.to_numeric(
-        df[col],
+        .str.replace(",", ".", regex=False),
         errors="coerce"
     )
 
-    df.loc[df[col] == -1, col] = np.nan
+# Remove entire rows containing -1
+df = df[~df[features].eq(-1).any(axis=1)].copy()
 
-df = df.dropna(
-    subset=features,
-    how="all"
-).copy()
-
-for col in features:
-    df[col] = df[col].fillna(
-        df[col].median()
-    )
+# Replace remaining missing values with median
+df[features] = df[features].fillna(df[features].median())
 
 
-# ============================================================
-# K-MEANS
-# ============================================================
-
-def cluster_data(X, max_k=10):
-
-    X_scaled = StandardScaler().fit_transform(X)
+def cluster(X):
+    X = StandardScaler().fit_transform(X)
     scores = {}
 
-    for k in range(
-        2,
-        min(max_k, len(X_scaled) - 1) + 1
-    ):
-
-        model = KMeans(
+    for k in range(2, min(10, len(X) - 1) + 1):
+        labels = KMeans(
             n_clusters=k,
-            random_state=RANDOM_STATE,
+            random_state=50,
             n_init=20
-        )
+        ).fit_predict(X)
+        scores[k] = silhouette_score(X, labels)
 
-        labels = model.fit_predict(X_scaled)
-
-        scores[k] = silhouette_score(
-            X_scaled,
-            labels
-        )
-
-    best_k = max(
-        scores,
-        key=scores.get
-    )
-
-    model = KMeans(
-        n_clusters=best_k,
-        random_state=RANDOM_STATE,
+    k = max(scores, key=scores.get)
+    labels = KMeans(
+        n_clusters=k,
+        random_state=50,
         n_init=20
-    )
+    ).fit_predict(X)
 
-    labels = model.fit_predict(X_scaled)
-
-    return (
-        X_scaled,
-        labels,
-        best_k,
-        scores
-    )
+    return X, labels, k, scores
 
 
-# ============================================================
-# ACTIVITY NAMES
-# ============================================================
-
-def activity_names(k):
-
-    names = {
-        2: ["Low", "High"],
-        3: ["Low", "Medium", "High"],
-        4: ["Very Low", "Low", "High", "Very High"],
-        5: ["Very Low", "Low", "Medium", "High", "Very High"]
-    }
-
-    return names.get(
-        k,
-        [f"Group {i+1}" for i in range(k)]
-    )
-
-
-# ============================================================
-# GENDER DISTRIBUTION
-# ============================================================
-# Shows:
-# "Of all people of this gender, what percentage
-# belongs to each activity group?"
-# Therefore each gender sums to 100%.
-# ============================================================
-
-def gender_plot(
-    data,
-    group_col,
-    order,
-    filename,
-    title
-):
-
+def gender_plot(data, group, order, filename, title):
     table = pd.crosstab(
-        data[group_col],
-        data["gender"],
-        normalize="columns"
-    ) * 100
+        data[group], data.gender, normalize="columns"
+    ).reindex(order).fillna(0) * 100
 
-    table = table.reindex(
-        order
-    ).fillna(0)
+    table.to_csv(f"{DATA}/{filename.replace('.png', '.csv')}")
 
-    table.to_csv(
-        os.path.join(
-            DATA,
-            filename.replace(".png", ".csv")
-        )
-    )
-
-    genders = list(table.columns)
-    x = np.arange(len(genders))
-    width = 0.8 / len(order)
+    x = np.arange(len(table.columns))
+    width = .8 / len(order)
 
     plt.figure(figsize=(9, 5))
-
-    for i, group in enumerate(table.index):
-
-        values = table.loc[group].values
-
+    for i, name in enumerate(table.index):
         bars = plt.bar(
-            x + (
-                i - (len(order)-1)/2
-            ) * width,
-            values,
-            width,
-            label=str(group)
+            x + (i - (len(order)-1)/2) * width,
+            table.loc[name], width, label=name
         )
-
-        for bar, value in zip(
-            bars,
-            values
-        ):
-
+        for bar, value in zip(bars, table.loc[name]):
             if value > 3:
-
                 plt.text(
-                    bar.get_x()
-                    + bar.get_width()/2,
-                    value + 1,
-                    f"{value:.0f}%",
-                    ha="center",
-                    fontsize=8
+                    bar.get_x() + bar.get_width()/2,
+                    value + 1, f"{value:.0f}%",
+                    ha="center", fontsize=8
                 )
 
-    plt.xticks(
-        x,
-        genders
-    )
-
+    plt.xticks(x, table.columns)
     plt.xlabel("Gender")
     plt.ylabel("Percentage (%)")
     plt.ylim(0, 100)
     plt.title(title)
     plt.legend(title="Activity group")
-
     plt.tight_layout()
-
-    plt.savefig(
-        os.path.join(
-            PLOTS,
-            filename
-        ),
-        dpi=300
-    )
-
+    plt.savefig(f"{PLOTS}/{filename}", dpi=300)
     plt.close()
 
-
-# ============================================================
-# CLUSTER THE FOUR DIMENSIONS
-# ============================================================
 
 results = []
 
 for name, cols in groups.items():
 
-    X, labels, best_k, scores = cluster_data(
-        df[cols]
-    )
+    X, labels, k, scores = cluster(df[cols])
 
-    # Mean standardized activity per cluster
     means = {
         c: X[labels == c].mean()
         for c in np.unique(labels)
     }
 
-    # Order clusters from low to high activity
-    ordered = sorted(
-        means,
-        key=means.get
-    )
+    ordered = sorted(means, key=means.get)
+    names = {
+        2: ["Low", "High"],
+        3: ["Low", "Medium", "High"],
+        4: ["Very Low", "Low", "High", "Very High"],
+        5: ["Very Low", "Low", "Medium", "High", "Very High"]
+    }.get(k, [f"Group {i+1}" for i in range(k)])
 
-    names = activity_names(best_k)
-
-    cluster_names = {
-        c: names[i]
-        for i, c in enumerate(ordered)
-    }
-
+    mapping = dict(zip(ordered, names))
     group_col = f"{name}_group"
+    df[group_col] = pd.Series(labels, index=df.index).map(mapping)
+    ordered_names = [mapping[c] for c in ordered]
 
-    df[group_col] = [
-        cluster_names[c]
-        for c in labels
-    ]
-
-    ordered_names = [
-        cluster_names[c]
-        for c in ordered
-    ]
-
-    # --------------------------------------------------------
-    # K SELECTION
-    # --------------------------------------------------------
-
+    # K selection
     plt.figure(figsize=(7, 4))
-
-    plt.plot(
-        list(scores.keys()),
-        list(scores.values()),
-        marker="o"
-    )
-
+    plt.plot(list(scores), list(scores.values()), marker="o")
     plt.xlabel("K")
     plt.ylabel("Silhouette score")
-    plt.title(
-        f"K selection - "
-        f"{name.replace('_', ' ').title()}"
-    )
-
-    plt.xticks(
-        list(scores.keys())
-    )
-
-    plt.grid(alpha=0.3)
+    plt.title(f"K selection - {name.replace('_', ' ').title()}")
+    plt.xticks(list(scores))
+    plt.grid(alpha=.3)
     plt.tight_layout()
-
-    plt.savefig(
-        os.path.join(
-            PLOTS,
-            f"{name}_k_selection.png"
-        ),
-        dpi=300
-    )
-
+    plt.savefig(f"{PLOTS}/{name}_k_selection.png", dpi=300)
     plt.close()
 
-
-    # --------------------------------------------------------
-    # GROUP SIZE
-    # --------------------------------------------------------
-
-    counts = (
-        df[group_col]
-        .value_counts()
-        .reindex(ordered_names)
-        .fillna(0)
-    )
-
-    group_numbers = [
-        f"Group {i+1}"
-        for i in range(len(counts))
-    ]
+    # Group size
+    counts = df[group_col].value_counts().reindex(ordered_names).fillna(0)
 
     plt.figure(figsize=(7, 4))
-
-    bars = plt.bar(
-        group_numbers,
-        counts.values
-    )
-
-    # Number directly on bars
-    for bar, value in zip(
-        bars,
-        counts.values
-    ):
-
+    bars = plt.bar([f"Group {i+1}" for i in range(k)], counts)
+    for bar, value in zip(bars, counts):
         plt.text(
-            bar.get_x()
-            + bar.get_width()/2,
+            bar.get_x() + bar.get_width()/2,
             bar.get_height() + 1,
-            str(int(value)),
-            ha="center",
-            va="bottom",
-            fontsize=10
+            str(int(value)), ha="center"
         )
-
     plt.xlabel("Activity group")
     plt.ylabel("Number of students")
-
-    plt.title(
-        f"Students by activity group - "
-        f"{name.replace('_', ' ').title()}"
-    )
-
+    plt.title(f"Students by activity group - {name.replace('_', ' ').title()}")
     plt.tight_layout()
-
-    plt.savefig(
-        os.path.join(
-            PLOTS,
-            f"{name}_group_size.png"
-        ),
-        dpi=300
-    )
-
+    plt.savefig(f"{PLOTS}/{name}_group_size.png", dpi=300)
     plt.close()
 
-
-    # --------------------------------------------------------
-    # ACTIVITY LEVEL
-    # --------------------------------------------------------
-
-    activity = [
-        means[c]
-        for c in ordered
-    ]
+    # Activity level
+    activity = [means[c] for c in ordered]
 
     plt.figure(figsize=(7, 4))
-
-    bars = plt.bar(
-        group_numbers,
-        activity
-    )
-
-    for bar, value in zip(
-        bars,
-        activity
-    ):
-
+    bars = plt.bar([f"Group {i+1}" for i in range(k)], activity)
+    for bar, value in zip(bars, activity):
         plt.text(
-            bar.get_x()
-            + bar.get_width()/2,
-            value,
-            f"{value:.2f}",
-            ha="center",
-            va="bottom"
+            bar.get_x() + bar.get_width()/2,
+            value, f"{value:.2f}",
+            ha="center", va="bottom"
         )
-
     plt.xlabel("Activity group")
     plt.ylabel("Mean standardized activity")
-
-    plt.title(
-        f"Activity level - "
-        f"{name.replace('_', ' ').title()}"
-    )
-
+    plt.title(f"Activity level - {name.replace('_', ' ').title()}")
     plt.tight_layout()
-
-    plt.savefig(
-        os.path.join(
-            PLOTS,
-            f"{name}_activity_level.png"
-        ),
-        dpi=300
-    )
-
+    plt.savefig(f"{PLOTS}/{name}_activity_level.png", dpi=300)
     plt.close()
 
-
-    # --------------------------------------------------------
-    # GENDER
-    # --------------------------------------------------------
-
     gender_plot(
-        df,
-        group_col,
-        ordered_names,
+        df, group_col, ordered_names,
         f"{name}_gender_distribution.png",
-        f"Gender distribution - "
-        f"{name.replace('_', ' ').title()}"
+        f"Gender distribution - {name.replace('_', ' ').title()}"
     )
-
 
     results.append({
         "dimension": name,
-        "best_k": best_k,
-        "silhouette": scores[best_k]
+        "best_k": k,
+        "silhouette": scores[k]
     })
 
 
-# ============================================================
-# SAVE BEST K
-# ============================================================
+# Activity profiles
+group_cols = [f"{x}_group" for x in groups]
 
-pd.DataFrame(results).to_csv(
-    os.path.join(
-        DATA,
-        "best_k_results.csv"
-    ),
-    index=False
-)
-
-
-# ============================================================
-# ACTIVITY PROFILE
-# ============================================================
-
-group_cols = [
-    "digital_school_group",
-    "digital_offschool_group",
-    "social_school_group",
-    "social_offschool_group"
-]
-
-# Short codes only for the activity profile
 codes = {
-    "Very Low": "VL",
-    "Low": "L",
-    "Medium": "M",
-    "High": "H",
-    "Very High": "VH"
+    "Very Low": "VL", "Low": "L", "Medium": "M",
+    "High": "H", "Very High": "VH"
 }
 
-for col in group_cols:
-
-    df[col + "_code"] = df[
-        col
-    ].map(codes)
-
-profile_cols = [
-    col + "_code"
-    for col in group_cols
-]
-
-df["activity_profile"] = (
-    df[profile_cols]
-    .agg("-".join, axis=1)
-)
-
-
-# ============================================================
-# FINAL PROFILE K-MEANS
-# ============================================================
+df["activity_profile"] = df[group_cols].replace(codes).agg("-".join, axis=1)
 
 numeric = {
-    "Very Low": 0,
-    "Low": 1,
-    "Medium": 2,
-    "High": 3,
-    "Very High": 4
+    "Very Low": 0, "Low": 1, "Medium": 2,
+    "High": 3, "Very High": 4
 }
 
-profile_numeric = (
-    df[group_cols]
-    .replace(numeric)
-)
-
-(
-    X_profile,
-    profile_labels,
-    profile_k,
-    profile_scores
-) = cluster_data(
-    profile_numeric
+X, profile_labels, profile_k, profile_scores = cluster(
+    df[group_cols].replace(numeric)
 )
 
 df["profile_cluster"] = profile_labels
 
-
-# Use Group 1, Group 2, etc. for final clusters
 profile_names = {
     c: f"Group {i+1}"
-    for i, c in enumerate(
-        sorted(
-            np.unique(profile_labels)
-        )
-    )
+    for i, c in enumerate(sorted(np.unique(profile_labels)))
 }
 
-df["profile_group"] = (
-    df["profile_cluster"]
-    .map(profile_names)
-)
+df["profile_group"] = df.profile_cluster.map(profile_names)
+profile_order = list(profile_names.values())
 
 
-# ============================================================
-# FINAL PROFILE K SELECTION
-# ============================================================
-
+# Final profile plots
 plt.figure(figsize=(7, 4))
-
-plt.plot(
-    list(profile_scores.keys()),
-    list(profile_scores.values()),
-    marker="o"
-)
-
+plt.plot(list(profile_scores), list(profile_scores.values()), marker="o")
 plt.xlabel("K")
 plt.ylabel("Silhouette score")
 plt.title("K selection - Final activity profiles")
-
-plt.xticks(
-    list(profile_scores.keys())
-)
-
-plt.grid(alpha=0.3)
+plt.xticks(list(profile_scores))
+plt.grid(alpha=.3)
 plt.tight_layout()
-
-plt.savefig(
-    os.path.join(
-        PLOTS,
-        "profile_k_selection.png"
-    ),
-    dpi=300
-)
-
+plt.savefig(f"{PLOTS}/profile_k_selection.png", dpi=300)
 plt.close()
 
-
-# ============================================================
-# FINAL PROFILE SIZE
-# ============================================================
-
-profile_order = list(
-    profile_names.values()
-)
-
-counts = (
-    df["profile_group"]
-    .value_counts()
-    .reindex(profile_order)
-    .fillna(0)
-)
+counts = df.profile_group.value_counts().reindex(profile_order).fillna(0)
 
 plt.figure(figsize=(7, 4))
-
-bars = plt.bar(
-    profile_order,
-    counts.values
-)
-
-for bar, value in zip(
-    bars,
-    counts.values
-):
-
+bars = plt.bar(profile_order, counts)
+for bar, value in zip(bars, counts):
     plt.text(
-        bar.get_x()
-        + bar.get_width()/2,
+        bar.get_x() + bar.get_width()/2,
         bar.get_height() + 1,
-        str(int(value)),
-        ha="center",
-        va="bottom"
+        str(int(value)), ha="center"
     )
-
 plt.xlabel("Final profile")
 plt.ylabel("Number of students")
 plt.title("Students by final activity profile")
-
 plt.tight_layout()
-
-plt.savefig(
-    os.path.join(
-        PLOTS,
-        "profile_cluster_size.png"
-    ),
-    dpi=300
-)
-
+plt.savefig(f"{PLOTS}/profile_cluster_size.png", dpi=300)
 plt.close()
 
 
-# ============================================================
-# PROFILE COMPOSITION
-# ============================================================
-
+# Profile composition
 profile_means = (
     df.groupby("profile_group")[group_cols]
-    .agg(
-        lambda x:
-        x.map(numeric).mean()
-    )
+    .agg(lambda x: x.map(numeric).mean())
     .reindex(profile_order)
 )
 
-profile_means.to_csv(
-    os.path.join(
-        DATA,
-        "profile_cluster_composition.csv"
-    )
-)
-
-
-# ============================================================
-# PROFILE HEATMAP
-# ============================================================
+profile_means.to_csv(f"{DATA}/profile_cluster_composition.csv")
 
 plt.figure(figsize=(9, 6))
-
-plt.imshow(
-    profile_means,
-    aspect="auto"
-)
-
-plt.colorbar(
-    label="Mean activity level"
-)
-
+plt.imshow(profile_means, aspect="auto")
+plt.colorbar(label="Mean activity level")
 plt.xticks(
     range(4),
-    [
-        "Digital School",
-        "Digital Off-School",
-        "Social School",
-        "Social Off-School"
-    ],
-    rotation=25,
-    ha="right"
+    ["Digital School", "Digital Off-School",
+     "Social School", "Social Off-School"],
+    rotation=25, ha="right"
 )
-
-plt.yticks(
-    range(len(profile_means)),
-    profile_order
-)
-
+plt.yticks(range(len(profile_means)), profile_order)
 plt.xlabel("Activity dimension")
 plt.ylabel("Final profile")
-plt.title(
-    "Activity composition of final profiles"
-)
+plt.title("Activity composition of final profiles")
 
 for i in range(len(profile_means)):
-
     for j in range(4):
-
         plt.text(
-            j,
-            i,
-            f"{profile_means.iloc[i, j]:.1f}",
-            ha="center",
-            va="center"
+            j, i, f"{profile_means.iloc[i, j]:.1f}",
+            ha="center", va="center"
         )
 
 plt.tight_layout()
-
-plt.savefig(
-    os.path.join(
-        PLOTS,
-        "profile_heatmap.png"
-    ),
-    dpi=300
-)
-
+plt.savefig(f"{PLOTS}/profile_heatmap.png", dpi=300)
 plt.close()
 
 
-# ACTIVITY PROFILE FREQUENCY
+# Activity profile frequency
+freq = df.activity_profile.value_counts().sort_index()
+freq.to_csv(f"{DATA}/activity_profile_frequency.csv", header=["students"])
 
-freq = (
-    df["activity_profile"]
-    .value_counts()
-    .sort_index()
-)
-
-# Save frequency table
-freq.to_csv(
-    os.path.join(DATA, "activity_profile_frequency.csv"),
-    header=["students"]
-)
-
-# Plot
 plt.figure(figsize=(14, 6))
-
-bars = plt.bar(
-    freq.index,
-    freq.values
-)
-
-# Add number above each bar
-for bar, value in zip(bars, freq.values):
+bars = plt.bar(freq.index, freq)
+for bar, value in zip(bars, freq):
     plt.text(
-        bar.get_x() + bar.get_width() / 2,
+        bar.get_x() + bar.get_width()/2,
         bar.get_height() + 1,
-        str(int(value)),
-        ha="center",
-        va="bottom",
-        fontsize=8
+        str(int(value)), ha="center", fontsize=8
     )
-
 plt.xlabel("Activity pattern")
 plt.ylabel("Number of students")
 plt.title("Digital and social activity patterns")
-
-plt.xticks(
-    rotation=45,
-    ha="right"
-)
-
+plt.xticks(rotation=45, ha="right")
 plt.tight_layout()
-
 plt.savefig(
     os.path.join(PLOTS, "activity_profile_frequency.png"),
     dpi=300
 )
-
 plt.close()
 
-# ============================================================
-# FINAL PROFILE GENDER
-# ============================================================
 
 gender_plot(
-    df,
-    "profile_group",
-    profile_order,
+    df, "profile_group", profile_order,
     "profile_cluster_gender.png",
     "Gender distribution by final profile"
 )
 
 
-# ============================================================
-# SAVE FINAL DATA
-# ============================================================
+# Save data
+pd.DataFrame(results).to_csv(
+    f"{DATA}/best_k_results.csv", index=False
+)
 
 df.to_csv(
-    os.path.join(
-        DATA,
-        "student_activity_clusters.csv"
-    ),
-    index=False
+    f"{DATA}/student_activity_clusters.csv", index=False
 )
 
 
-# ============================================================
-# SUMMARY
-# ============================================================
-
-print("\n================================")
-print("CLUSTERING COMPLETE")
-print("================================")
-
+# Print results
 for r in results:
-
     print(
         f"{r['dimension']:25s} "
-        f"K={r['best_k']}  "
+        f"K={r['best_k']} "
         f"silhouette={r['silhouette']:.3f}"
     )
 
 print(
-    f"\nFinal profiles: "
-    f"K={profile_k}, "
-    f"silhouette="
-    f"{profile_scores[profile_k]:.3f}"
+    f"\nFinal profiles: K={profile_k}, "
+    f"silhouette={profile_scores[profile_k]:.3f}"
 )
 
 print("\nExample profiles:")
+print(df[["user", "activity_profile", "profile_group"]].head(10))
 
-print(
-    df[
-        [
-            "user",
-            "activity_profile",
-            "profile_group"
-        ]
-    ].head(10)
-)
+corr = df[group_cols].replace(numeric).corr()
 
-print(
-    f"\nResults saved in: {OUT}/"
-)
+sns.heatmap(corr, annot=True, vmin=-1, vmax=1, cmap="coolwarm")
+plt.title("Correlation between activity groups")
+plt.tight_layout()
+plt.savefig(os.path.join(PLOTS, "group_correlation_heatmap.png"), dpi=300)
+plt.show()
+
+print(f"\nResults saved in: {OUT}/")
