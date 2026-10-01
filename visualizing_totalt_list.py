@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-data = pd.read_csv("total_list.csv")
+data = pd.read_csv("Final_total_list.csv")
 
 print(data.shape)
 print(data.head(10))
@@ -41,7 +41,7 @@ plt.ylabel('students amt.')
 plt.show()"""
 
 
-columns = [
+"""columns = [
     "sms_convo_S-H",
     "bt_interactions_S-H",
     "calls_duration_S-H",
@@ -49,43 +49,89 @@ columns = [
 ]
 
 
+for column in data.columns:
 
-data["bt_interactions_S-H"] = (
-    data["bt_interactions_S-H"]
-    .astype(str)
-    .str.replace("−", "-", regex=False)
+    # user är bara ett ID
+    if column == "user":
+        continue
+
+    plt.figure()
+
+    plt.boxplot(data[column].dropna())
+
+    plt.title(column)
+    plt.ylabel(column)
+
+    plt.show()
+"""
+
+"""import matplotlib.pyplot as plt
+import seaborn as sns
+
+corr_data = data.drop(columns=["user", "gender"])
+correlation = corr_data.corr()
+
+plt.figure(figsize=(22, 18))
+
+sns.heatmap(
+    correlation,
+    cmap="coolwarm",
+    center=0,
+    square=True
 )
 
-data["bt_interactions_S-H"] = pd.to_numeric(
-    data["bt_interactions_S-H"],
-    errors="coerce"
-)
+plt.xticks(rotation=45, ha="right", fontsize=9)
+plt.yticks(rotation=0, fontsize=9)
 
-print(data["bt_interactions_S-H"].dtype)
-print(data["bt_interactions_S-H"].unique())
+plt.title("Correlation between features", fontsize=16)
+
+plt.tight_layout()
+plt.show()"""
 
 
+"""print("Mean:", data["sms_convo_O-S-H"].mean())
+print("Median:", data["sms_convo_O-S-H"].median())
+print("Max:", data["sms_convo_O-S-H"].max())
+print("Lower quartile:", data["sms_convo_O-S-H"].())
+print("övre kvartil:", data["sms_convo_O-S-H"].max())
 
-columns = [
-    "sms_convo_S-H",
-    "bt_interactions_S-H",
-    "calls_duration_S-H",
-    "fb_friends"
-]
+#vill ha detta i en tabell
+"""
 
-plt.figure(figsize=(10, 6))
 
-plt.boxplot(
-    [data[col].dropna() for col in columns],
-    tick_labels=[
-        "SMS conversations",
-        "Bluetooth interactions",
-        "Call duration",
-        "Facebook friends"
-    ]
-)
+#tabell till excel fil
 
-plt.ylabel("Value")
-plt.title("Distribution and outliers in features")
+analysis_data = data.drop(columns=["user"])
 
-plt.show()
+stats = pd.DataFrame({
+    "Mean": analysis_data.mean(),
+    "Median": analysis_data.median(),
+    "Max": analysis_data.max(),
+    "Lower quartile (Q1)": analysis_data.quantile(0.25),
+    "Upper quartile (Q3)": analysis_data.quantile(0.75)
+})
+
+print(stats)
+
+# tar bort user eftersom det bara är ett ID
+analysis_data = data.drop(columns=["user"])
+
+# skapar tabellen
+stats = pd.DataFrame({
+    "Min": analysis_data.min(),
+    "Lower quartile (Q1)": analysis_data.quantile(0.25),
+    "Median": analysis_data.median(),
+    "Mean": analysis_data.mean(),
+    "Upper quartile (Q3)": analysis_data.quantile(0.75),
+    "Max": analysis_data.max(),
+    "Standard deviation": analysis_data.std()
+})
+
+# avrundar till 2 decimaler
+stats = stats.round(2)
+
+# sparar som Excel
+stats.to_excel("descriptive_statistics.xlsx")
+
+print("Excel file created!")
+
