@@ -52,7 +52,7 @@ heatmap_data = data.drop(columns=["user", "gender"])
 corr_matrix = heatmap_data.corr()
 
 # Plot heatmap
-plt.figure(figsize=(20, 16))
+plt.figure(figsize=(10, 8))
 
 sns.heatmap(
     corr_matrix,
@@ -61,6 +61,7 @@ sns.heatmap(
     vmin=-1,
     vmax=1,
     annot=True,
+    annot_kws={"size": 6},
     fmt=".2f",
     linewidths=0.5
 )
