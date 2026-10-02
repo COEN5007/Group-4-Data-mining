@@ -19,7 +19,7 @@ cols = [
 
 for col in cols:
     data[col] = pd.to_numeric(
-        data[col].str.replace(",", ".", regex=False)
+        data[col].astype(str).str.replace(",", ".", regex=False), errors="coerce"
     )
 
 print(data.dtypes)
@@ -27,7 +27,7 @@ print(data.dtypes)
 
 
 
-"""boxplot_columns = data.columns.drop(["user", "gender"])
+boxplot_columns = data.columns.drop(["user", "gender"])
 
 for col in boxplot_columns:
 
@@ -42,7 +42,7 @@ for col in boxplot_columns:
     plt.xlabel(col)
 
     plt.tight_layout()
-    plt.show()"""
+    plt.show()
 
 
 
