@@ -357,16 +357,3 @@ print("Mean interactions O-S-H:",
 
 
 #cheeeckkk
-print("\n--- FINAL CHECK BEFORE EXPORT ---")
-print("Total users:", len(total))
-print("Unique users:", total["user"].nunique())
-print("User range:", total["user"].min(), "-", total["user"].max())
-
-print("\nData types:")
-print(total.dtypes)
-
-print("\nObject columns:")
-print(total.select_dtypes(include="object").columns.tolist())
-
-print("\nUsers marked -1 for missing BT:")
-print((total[bt_columns] == -1).any(axis=1).sum())

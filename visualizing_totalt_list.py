@@ -27,7 +27,7 @@ print(data.dtypes)
 
 
 
-boxplot_columns = data.columns.drop(["user", "gender"])
+"""boxplot_columns = data.columns.drop(["user", "gender"])
 
 for col in boxplot_columns:
 
@@ -42,17 +42,14 @@ for col in boxplot_columns:
     plt.xlabel(col)
 
     plt.tight_layout()
-    plt.show()
-
-
+    plt.show()"""
 
 heatmap_data = data.drop(columns=["user", "gender"])
-
-# Calculate correlation matrix
+# Calculate correlations
 corr_matrix = heatmap_data.corr()
 
-# Plot heatmap
-plt.figure(figsize=(10, 8))
+# Create heatmap
+plt.figure(figsize=(20, 16))
 
 sns.heatmap(
     corr_matrix,
@@ -61,7 +58,6 @@ sns.heatmap(
     vmin=-1,
     vmax=1,
     annot=True,
-    annot_kws={"size": 6},
     fmt=".2f",
     linewidths=0.5
 )
@@ -70,7 +66,3 @@ plt.title("Correlation Heatmap of Social Interaction Features")
 
 plt.tight_layout()
 plt.show()
-
-
-
-
