@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-data = pd.read_csv("FINALFINALcleaned2oktober.csv")
+data = pd.read_csv("FinalTotalList2oct.csv")
 
 
 print(data.shape)
