@@ -19,7 +19,7 @@ cols = [
 
 for col in cols:
     data[col] = pd.to_numeric(
-        data[col].str.replace(",", ".", regex=False)
+        data[col].astype(str).str.replace(",", ".", regex=False), errors="coerce"
     )
 
 print(data.dtypes)
@@ -27,27 +27,49 @@ print(data.dtypes)
 
 
 
+boxplot_columns = data.columns.drop(["user", "gender"])
 
-# Don't plot ID or categorical variable
-plot_columns = data.columns.drop(["user", "gender"])
+for col in boxplot_columns:
 
-hist_columns = data.columns.drop(["user", "gender"])
+    plt.figure(figsize=(8, 4))
 
-for col in hist_columns:
-
-    plt.figure(figsize=(8, 5))
-
-    plt.hist(
+    plt.boxplot(
         data[col],
-        bins=30,
-        edgecolor="black"
+        vert=False
     )
 
-    plt.title(f"Distribution of {col}")
+    plt.title(f"Boxplot of {col}")
     plt.xlabel(col)
-    plt.ylabel("Number of users")
 
     plt.tight_layout()
     plt.show()
+
+
+
+heatmap_data = data.drop(columns=["user", "gender"])
+
+# Calculate correlation matrix
+corr_matrix = heatmap_data.corr()
+
+# Plot heatmap
+plt.figure(figsize=(20, 16))
+
+sns.heatmap(
+    corr_matrix,
+    cmap="coolwarm",
+    center=0,
+    vmin=-1,
+    vmax=1,
+    annot=True,
+    fmt=".2f",
+    linewidths=0.5
+)
+
+plt.title("Correlation Heatmap of Social Interaction Features")
+
+plt.tight_layout()
+plt.show()
+
+
 
 
