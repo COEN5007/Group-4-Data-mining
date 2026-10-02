@@ -52,24 +52,14 @@ sms["hour"] = (sms["timestamp"] // 3600) % 24
 
 # Dataset starts on a Sunday
 # 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-sms["day_of_week"] = (
-    sms["timestamp"] // SECONDS_PER_DAY
-) % 7
+sms["day_of_week"] = (sms["timestamp"] // SECONDS_PER_DAY) % 7
 
 # Everything is initially outside school hours
 sms["period"] = "O-S-H"
 
 # School hours:
 # Monday-Friday, 08:00-17:00
-sms.loc[
-    (sms["day_of_week"] >= 1) &
-    (sms["day_of_week"] <= 5) &
-    (sms["hour"] >= 8) &
-    (sms["hour"] < 17),
-    "period"
-] = "S-H"
-
-
+sms.loc[(sms["day_of_week"] >= 1) &(sms["day_of_week"] <= 5) &(sms["hour"] >= 8) &(sms["hour"] < 17),"period"] = "S-H"
 #trying first to select one column and then just printing it all 
 
 """data = pd.read_csv("sms.csv", index_col="timestamp")
@@ -278,10 +268,7 @@ sms_columns = [
 ]
 
 # Descriptive statistics
-sms_stats = users[sms_columns].describe().T[
-    ["min", "25%", "50%", "mean", "75%", "max", "std"]
-].round(2)
-
+sms_stats = users[sms_columns].describe().T[["min", "25%", "50%", "mean", "75%", "max", "std"].round(2)
 print(sms_stats)
 
 

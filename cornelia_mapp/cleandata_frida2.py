@@ -80,9 +80,7 @@ interactions = interactions.drop(
     columns=["interaction_id"])
 #print(interactions)
 
-#### Ändrat tidsblock
-
-
+#### Ändrat tidsblock så vi får söndag = 0 och school days index 1-5 istället för 0-4 som innan 
 # seconds in one day
 SECONDS_PER_DAY = 24 * 60 * 60
 

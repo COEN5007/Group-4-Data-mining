@@ -25,44 +25,21 @@ for col in cols:
 print(data.dtypes)
 
 
+histogram_columns = data.columns.drop(["user", "gender"])
 
+for col in histogram_columns:
 
-"""boxplot_columns = data.columns.drop(["user", "gender"])
+    plt.figure(figsize=(8, 5))
 
-for col in boxplot_columns:
-
-    plt.figure(figsize=(8, 4))
-
-    plt.boxplot(
+    plt.hist(
         data[col],
-        vert=False
+        bins=30,
+        edgecolor="black"
     )
 
-    plt.title(f"Boxplot of {col}")
+    plt.title(f"Distribution of {col}")
     plt.xlabel(col)
+    plt.ylabel("Number of users")
 
     plt.tight_layout()
-    plt.show()"""
-
-heatmap_data = data.drop(columns=["user", "gender"])
-# Calculate correlations
-corr_matrix = heatmap_data.corr()
-
-# Create heatmap
-plt.figure(figsize=(20, 16))
-
-sns.heatmap(
-    corr_matrix,
-    cmap="coolwarm",
-    center=0,
-    vmin=-1,
-    vmax=1,
-    annot=True,
-    fmt=".2f",
-    linewidths=0.5
-)
-
-plt.title("Correlation Heatmap of Social Interaction Features")
-
-plt.tight_layout()
-plt.show()
+    plt.show()
