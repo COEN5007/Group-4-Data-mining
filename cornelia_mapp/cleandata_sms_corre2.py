@@ -44,21 +44,26 @@ import numpy as np
 
 #fixing all time stamps för the dataset, started at sunday
 # seconds in one day
+# seconds in one day
 SECONDS_PER_DAY = 24 * 60 * 60
 
-# getting the hour from the timestamp
+# Relative hour within the day
 sms["hour"] = (sms["timestamp"] // 3600) % 24
 
-# getting which day of the week it is
-sms["day_of_week"] = (sms["timestamp"] // SECONDS_PER_DAY) % 7
+# Dataset starts on a Sunday
+# 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+sms["day_of_week"] = (
+    sms["timestamp"] // SECONDS_PER_DAY
+) % 7
 
-
-# everything is first set as off school hours
+# Everything is initially outside school hours
 sms["period"] = "O-S-H"
 
-# weekdays between 08 and 17 are school hours
+# School hours:
+# Monday-Friday, 08:00-17:00
 sms.loc[
-    (sms["day_of_week"] < 5) &
+    (sms["day_of_week"] >= 1) &
+    (sms["day_of_week"] <= 5) &
     (sms["hour"] >= 8) &
     (sms["hour"] < 17),
     "period"
@@ -247,74 +252,72 @@ print(users.head(20))
 
 users.to_excel("data_mining_sms.xlsx", index=False)
 
+### ta bort sen 
+print("\n--- CHECK ---")
 
+print("Total raw SMS:", len(sms))
 
-
-# Relative hour within each 24-hour block
-sms["relative_hour"] = (sms["timestamp"] // 3600) % 24
-
-# Count number of SMS in each relative hour
-sms_per_hour = (
-    sms.groupby("relative_hour")
-    .size()
-    .reindex(range(24), fill_value=0)
+print(
+    "S-H + O-S-H:",
+    len(school_sms) + len(off_school_sms)
 )
 
-print(sms_per_hour)
+print("\nSMS by period:")
+print(sms["period"].value_counts())
 
-# Plot
-plt.figure(figsize=(10, 5))
+print("\nSMS by day:")
+print(sms["day_of_week"].value_counts().sort_index())
 
-plt.plot(
-    sms_per_hour.index,
-    sms_per_hour.values,
-    marker="o"
-)
+print("\nDay mapping:")
+print("0 = Sunday")
+print("1 = Monday")
+print("2 = Tuesday")
+print("3 = Wednesday")
+print("4 = Thursday")
+print("5 = Friday")
+print("6 = Saturday")
 
-plt.xticks(range(24))
-plt.xlabel("Relative hour from timestamp")
-plt.ylabel("Number of SMS")
-plt.title("SMS activity across the 24 relative hours")
+print("\n--- SMS DESCRIPTIVE STATISTICS ---")
 
-plt.grid(alpha=0.3)
-plt.show()
+# SMS feature columns
+sms_columns = [
+    "sms sent S-H",
+    "sms sent O-S-H",
+    "sms received S-H",
+    "sms received O-S-H",
+    "unique people S-H",
+    "unique people O-S-H",
+    "conversation S-H",
+    "conversation O-S-H"
+]
 
-#se maybe a pattern over time to determine hwhat day the study started on 
-sms["relative_week_hour"] = (sms["timestamp"] // 3600) % 168
+# Descriptive statistics
+sms_stats = users[sms_columns].describe().T[
+    ["min", "25%", "50%", "mean", "75%", "max", "std"]
+].round(2)
 
-sms_per_week_hour = (
-    sms.groupby("relative_week_hour")
-       .size()
-       .reindex(range(168), fill_value=0)
-)
-
-plt.figure(figsize=(16, 6))
-plt.plot(sms_per_week_hour.index, sms_per_week_hour.values)
-
-plt.xticks(
-    range(0, 168, 24),
-    ["Day 0", "Day 1", "Day 2", "Day 3",
-     "Day 4", "Day 5", "Day 6"]
-)
-
-# Show assumed day boundaries
-for x in range(0, 169, 24):
-    plt.axvline(x=x, linestyle="--", alpha=0.3)
-
-plt.xlabel("Relative hour of week")
-plt.ylabel("Number of SMS")
-plt.title("SMS activity across the relative week")
-
-plt.show()
+print(sms_stats)
 
 
 
 
 
+# Check how many users have SMS data
 
+sms_columns = [
+    "sms sent S-H",
+    "sms sent O-S-H",
+    "sms received S-H",
+    "sms received O-S-H"
+]
 
+# User has SMS data if they have sent OR received at least one SMS
+has_sms = (users[sms_columns].sum(axis=1) > 0)
 
-
+print("\n--- SMS USER CHECK ---")
+print("Total users:", len(users))
+print("Users with SMS data:", has_sms.sum())
+print("Users without SMS data:", (~has_sms).sum())
 
 
 
