@@ -1,0 +1,73 @@
+cluster,block,variable,mean_standardized_value
+0,Digital school,Calls_Duration S-H,0.820268140057806
+1,Digital school,Calls_Duration S-H,-0.5777485205643705
+2,Digital school,Calls_Duration S-H,-0.5418177709717702
+0,Digital school,Calls Made S-H,0.7738601583431197
+1,Digital school,Calls Made S-H,-0.5006510459063472
+2,Digital school,Calls Made S-H,-0.5195478337943746
+0,Digital school,Calls Received S-H,0.7521628259593233
+1,Digital school,Calls Received S-H,-0.488833054776115
+2,Digital school,Calls Received S-H,-0.5045619017032055
+0,Digital school,Clls Unique People S-H,0.8384838010166908
+1,Digital school,Clls Unique People S-H,-0.6330441089048585
+2,Digital school,Clls Unique People S-H,-0.5458328008955131
+0,Digital school,sms sent S-H,0.8493401859545103
+1,Digital school,sms sent S-H,-0.7000489463883376
+2,Digital school,sms sent S-H,-0.5417975736074032
+0,Digital school,sms received S-H,0.8651427837353534
+1,Digital school,sms received S-H,-0.7011931290130412
+2,Digital school,sms received S-H,-0.5541210872211665
+0,Digital school,unique people S-H,0.884527135251377
+1,Digital school,unique people S-H,-0.8075540494673188
+2,Digital school,unique people S-H,-0.5494228324976753
+0,Digital school,conversation S-H,0.8877454527728362
+1,Digital school,conversation S-H,-0.7330894773541023
+2,Digital school,conversation S-H,-0.5660348089829803
+0,Digital outside,Calls Duration O-S-H,0.8579507008760108
+1,Digital outside,Calls Duration O-S-H,-0.4939397025787081
+2,Digital outside,Calls Duration O-S-H,-0.5875415857540106
+0,Digital outside,Calls Made O-S-H,0.8078321108644358
+1,Digital outside,Calls Made O-S-H,-0.4600191516192627
+2,Digital outside,Calls Made O-S-H,-0.5541758469584084
+0,Digital outside,Calls Received O-S-H,0.8031184178000309
+1,Digital outside,Calls Received O-S-H,-0.45591437021714215
+2,Digital outside,Calls Received O-S-H,-0.5512104268268769
+0,Digital outside,Calls Unique People O-S-H,0.856763304893751
+1,Digital outside,Calls Unique People O-S-H,-0.6126875904909901
+2,Digital outside,Calls Unique People O-S-H,-0.5641808944690136
+0,Digital outside,sms sent O-S-H,0.8918650491798826
+1,Digital outside,sms sent O-S-H,-0.6094579357385299
+2,Digital outside,sms sent O-S-H,-0.5926442192982967
+0,Digital outside,sms received O-S-H,0.8973004470117292
+1,Digital outside,sms received O-S-H,-0.6014072983025505
+2,Digital outside,sms received O-S-H,-0.5984771479492386
+0,Digital outside,unique people O-S-H,0.8752075937170246
+1,Digital outside,unique people O-S-H,-0.6212549558507292
+2,Digital outside,unique people O-S-H,-0.5771991903700089
+0,Digital outside,conversation O-S-H,0.9198897581335517
+1,Digital outside,conversation O-S-H,-0.640484578265893
+2,Digital outside,conversation O-S-H,-0.6090245779613813
+0,Bluetooth school,BT_Interactions S-H,0.34267593244898903
+1,Bluetooth school,BT_Interactions S-H,-2.268273559466865
+2,Bluetooth school,BT_Interactions S-H,0.15631174624513622
+0,Bluetooth school,BT_Average Duration S-H,0.10063361978790847
+1,Bluetooth school,BT_Average Duration S-H,-0.6422803389977483
+2,Bluetooth school,BT_Average Duration S-H,0.04140264888763345
+0,Bluetooth school,BT_Unique people S-H,0.34408008670917084
+1,Bluetooth school,BT_Unique people S-H,-2.4612573617860347
+2,Bluetooth school,BT_Unique people S-H,0.19163105554436433
+0,Bluetooth school,BT_Outsiders S-H,0.10132400960294478
+1,Bluetooth school,BT_Outsiders S-H,-1.2558936360637378
+2,Bluetooth school,BT_Outsiders S-H,0.15669921570763082
+0,Bluetooth outside,BT_Interactions O-S-H,0.4562127057428573
+1,Bluetooth outside,BT_Interactions O-S-H,-1.878121887000138
+2,Bluetooth outside,BT_Interactions O-S-H,-0.007437808486193937
+0,Bluetooth outside,BT_Average Duration O-S-H,0.13322993132426816
+1,Bluetooth outside,BT_Average Duration O-S-H,-0.6577872962801662
+2,Bluetooth outside,BT_Average Duration O-S-H,0.01846470630000851
+0,Bluetooth outside,BT_Unique people O-S-H,0.5064467962636129
+1,Bluetooth outside,BT_Unique people O-S-H,-2.0754959009051333
+2,Bluetooth outside,BT_Unique people O-S-H,-0.0100367272477387
+0,Bluetooth outside,BT_Outsiders O-S-H,0.12053675708002592
+1,Bluetooth outside,BT_Outsiders O-S-H,-1.2361938452182855
+2,Bluetooth outside,BT_Outsiders O-S-H,0.13773456766797454
