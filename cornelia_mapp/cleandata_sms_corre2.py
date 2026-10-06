@@ -52,24 +52,14 @@ sms["hour"] = (sms["timestamp"] // 3600) % 24
 
 # Dataset starts on a Sunday
 # 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-sms["day_of_week"] = (
-    sms["timestamp"] // SECONDS_PER_DAY
-) % 7
+sms["day_of_week"] = (sms["timestamp"] // SECONDS_PER_DAY) % 7
 
 # Everything is initially outside school hours
 sms["period"] = "O-S-H"
 
 # School hours:
 # Monday-Friday, 08:00-17:00
-sms.loc[
-    (sms["day_of_week"] >= 1) &
-    (sms["day_of_week"] <= 5) &
-    (sms["hour"] >= 8) &
-    (sms["hour"] < 17),
-    "period"
-] = "S-H"
-
-
+sms.loc[(sms["day_of_week"] >= 1) &(sms["day_of_week"] <= 5) &(sms["hour"] >= 8) &(sms["hour"] < 17),"period"] = "S-H"
 #trying first to select one column and then just printing it all 
 
 """data = pd.read_csv("sms.csv", index_col="timestamp")
@@ -93,33 +83,23 @@ sms["user_2"] = sms[["sender", "recipient"]].max(axis=1)
 sms = sms.sort_values(["user_1", "user_2", "timestamp"])
 
 # find time between the messages
-sms["time_diff"] = sms.groupby(
-    ["user_1", "user_2"]
-)["timestamp"].diff()
+sms["time_diff"] = sms.groupby( ["user_1", "user_2"] )["timestamp"].diff()
 
 # we decided that a conversation is 30 minutes
 conversation_gap = 30 * 60
 
 # if it has been more than 30 minutes it is a new conversation
 # isna is needed because the first message does not have a message before it
-sms["new_conversation"] = (
-    sms["time_diff"].isna() |
-    (sms["time_diff"] > conversation_gap)
-)
+sms["new_conversation"] = (sms["time_diff"].isna() |(sms["time_diff"] > conversation_gap))
 
 # number the conversations
-sms["conversation_id"] = sms.groupby(
-    ["user_1", "user_2"]
-)["new_conversation"].cumsum()
+sms["conversation_id"] = sms.groupby(["user_1", "user_2"])["new_conversation"].cumsum()
 
 
 # making another table where one row is one conversation
 conversations = sms.groupby(
     ["user_1", "user_2", "conversation_id"]
-).agg(
-    start=("timestamp", "min"),
-    period=("period", "first")
-).reset_index()
+).agg(start=("timestamp", "min"),period=("period", "first")).reset_index()
 
 # period first means that if conversation starts during school hours
 # but ends after school hours it is still counted as school hours
@@ -161,6 +141,13 @@ received_osh = off_school_sms.groupby("recipient").size()
 users["sms received O-S-H"] = users["user"].map(received_osh)
 users["sms received O-S-H"] = users["sms received O-S-H"].fillna(0)
 users["sms received O-S-H"] = users["sms received O-S-H"].astype(int)
+
+
+
+
+
+
+
 
 
 # need both sent and received sms because we want everyone
@@ -226,23 +213,15 @@ users["conversation S-H"] = users["conversation S-H"].fillna(0)
 
 # want whole numbers
 users["conversation S-H"] = users["conversation S-H"].astype(int)
-
-
-
-
 # conversations off school hours
-
-offschool_conversations = all_conversations[
-    all_conversations["period"] == "O-S-H"
-]
-
+offschool_conversations = all_conversations[ all_conversations["period"] == "O-S-H"]
 conversation_osh = offschool_conversations.groupby("user").size()
-
 users["conversation O-S-H"] = users["user"].map(conversation_osh)
-
 users["conversation O-S-H"] = users["conversation O-S-H"].fillna(0)
-
 users["conversation O-S-H"] = users["conversation O-S-H"].astype(int)
+
+
+
 
 
 
@@ -257,10 +236,7 @@ print("\n--- CHECK ---")
 
 print("Total raw SMS:", len(sms))
 
-print(
-    "S-H + O-S-H:",
-    len(school_sms) + len(off_school_sms)
-)
+print( "S-H + O-S-H:",len(school_sms) + len(off_school_sms))
 
 print("\nSMS by period:")
 print(sms["period"].value_counts())
@@ -292,10 +268,7 @@ sms_columns = [
 ]
 
 # Descriptive statistics
-sms_stats = users[sms_columns].describe().T[
-    ["min", "25%", "50%", "mean", "75%", "max", "std"]
-].round(2)
-
+sms_stats = users[sms_columns].describe().T[["min", "25%", "50%", "mean", "75%", "max", "std"].round(2)
 print(sms_stats)
 
 

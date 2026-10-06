@@ -80,9 +80,7 @@ interactions = interactions.drop(
     columns=["interaction_id"])
 #print(interactions)
 
-#### Ändrat tidsblock
-
-
+#### Ändrat tidsblock så vi får söndag = 0 och school days index 1-5 istället för 0-4 som innan 
 # seconds in one day
 SECONDS_PER_DAY = 24 * 60 * 60
 
@@ -357,16 +355,3 @@ print("Mean interactions O-S-H:",
 
 
 #cheeeckkk
-print("\n--- FINAL CHECK BEFORE EXPORT ---")
-print("Total users:", len(total))
-print("Unique users:", total["user"].nunique())
-print("User range:", total["user"].min(), "-", total["user"].max())
-
-print("\nData types:")
-print(total.dtypes)
-
-print("\nObject columns:")
-print(total.select_dtypes(include="object").columns.tolist())
-
-print("\nUsers marked -1 for missing BT:")
-print((total[bt_columns] == -1).any(axis=1).sum())
