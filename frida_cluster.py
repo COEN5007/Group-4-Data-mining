@@ -236,11 +236,8 @@ best_score = float(
     ]
 )
 
-print("\n--------------------------------------------")
 print(f"Bästa antal kluster: {best_k}")
 print(f"Bästa silhouette score: {best_score:.4f}")
-print("--------------------------------------------")
-
 
 final_kmeans = KMeans(
     n_clusters=best_k,
