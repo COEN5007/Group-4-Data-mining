@@ -2,45 +2,21 @@ import pandas as pd
 from pathlib import Path
 import numpy as np
 
-
-# ============================================================
-# 1. FILER
-# ============================================================
-
 folder = Path(__file__).resolve().parent
 
 input_file = folder / "testdatatest.xlsx"
 output_file = folder / "färdigskit.xlsx"
 
-
-# ============================================================
-# 2. LÄS EXCEL
-# ============================================================
-
 df = pd.read_excel(input_file)
-
-print("==========================================")
-print("DATA")
-print("==========================================")
 
 print("Antal rader:", len(df))
 print("Antal kolumner:", len(df.columns))
-
-
-# ============================================================
-# 3. RENGÖR KOLUMNNAMN
-# ============================================================
 
 df.columns = (
     df.columns
     .astype(str)
     .str.strip()
 )
-
-
-# ============================================================
-# 4. FIXA STAVFEL
-# ============================================================
 
 column_fixes = {
 
@@ -53,22 +29,12 @@ df.rename(
     inplace=True
 )
 
-
-# ============================================================
-# 5. TA BORT USER
-# ============================================================
-
 if "user" in df.columns:
 
     df.drop(
         columns=["user"],
         inplace=True
     )
-
-
-# ============================================================
-# 6. FUNKTION FÖR ATT GÖRA DATA NUMERISK
-# ============================================================
 
 def clean_numeric(series):
 
@@ -109,11 +75,6 @@ def clean_numeric(series):
         errors="coerce"
     )
 
-
-# ============================================================
-# 7. GENDER
-# ============================================================
-
 gender = clean_numeric(
     df["gender"]
 )
@@ -126,11 +87,6 @@ df["gender"] = gender.map({
     1: "girl"
 })
 
-
-# ============================================================
-# 8. FUNKTION FÖR COUNT-VARIABLER
-# ============================================================
-
 def categorize_count(series, prefix):
 
     values = clean_numeric(series)
@@ -141,28 +97,14 @@ def categorize_count(series, prefix):
         dtype="object"
     )
 
-
-    # --------------------------------------------------------
-    # SAKNAS
-    # --------------------------------------------------------
-
     missing = values.isna()
 
-
-    # --------------------------------------------------------
-    # ZERO
-    # --------------------------------------------------------
 
     zero = values == 0
 
     result.loc[zero] = (
         "no" + prefix
     )
-
-
-    # --------------------------------------------------------
-    # POSITIVE
-    # --------------------------------------------------------
 
     positive = values > 0
 
@@ -177,11 +119,6 @@ def categorize_count(series, prefix):
 
         return result
 
-
-    # --------------------------------------------------------
-    # OM ALLA POSITIVA VÄRDEN ÄR SAMMA
-    # --------------------------------------------------------
-
     if positive_values.nunique() == 1:
 
         result.loc[positive] = (
@@ -193,11 +130,6 @@ def categorize_count(series, prefix):
         )
 
         return result
-
-
-    # --------------------------------------------------------
-    # KVANTILER
-    # --------------------------------------------------------
 
     try:
 
@@ -226,10 +158,6 @@ def categorize_count(series, prefix):
 
     except ValueError:
 
-        # ----------------------------------------------------
-        # FALLBACK FÖR FÅ UNIKA VÄRDEN
-        # ----------------------------------------------------
-
         ranks = positive_values.rank(
             method="first",
             pct=True
@@ -255,22 +183,12 @@ def categorize_count(series, prefix):
             else "verymany" + prefix
         )
 
-
-    # --------------------------------------------------------
-    # MISSING SIST
-    # --------------------------------------------------------
-
     result.loc[missing] = (
         "unknown" + prefix
     )
 
 
     return result
-
-
-# ============================================================
-# 9. FUNKTION FÖR LEVEL-VARIABLER
-# ============================================================
 
 def categorize_level(series, prefix):
 
@@ -282,30 +200,15 @@ def categorize_level(series, prefix):
         dtype="object"
     )
 
-
-    # --------------------------------------------------------
-    # ZERO
-    # --------------------------------------------------------
-
     zero = values == 0
 
     result.loc[zero] = (
         "no" + prefix
     )
 
-
-    # --------------------------------------------------------
-    # POSITIVE
-    # --------------------------------------------------------
-
     positive = values > 0
 
     positive_values = values.loc[positive]
-
-
-    # --------------------------------------------------------
-    # INGA POSITIVA
-    # --------------------------------------------------------
 
     if len(positive_values) == 0:
 
@@ -314,11 +217,6 @@ def categorize_level(series, prefix):
         )
 
         return result
-
-
-    # --------------------------------------------------------
-    # KVANTILER
-    # --------------------------------------------------------
 
     try:
 
@@ -372,11 +270,6 @@ def categorize_level(series, prefix):
             else "veryhigh" + prefix
         )
 
-
-    # --------------------------------------------------------
-    # MISSING
-    # --------------------------------------------------------
-
     result.loc[values.isna()] = (
         "unknown" + prefix
     )
@@ -384,10 +277,6 @@ def categorize_level(series, prefix):
 
     return result
 
-
-# ============================================================
-# 10. FACEBOOK FRIENDS
-# ============================================================
 
 df["amount_fbf_school"] = categorize_count(
 
@@ -406,10 +295,6 @@ df.rename(
     inplace=True
 )
 
-
-# ============================================================
-# 11. LEVEL-VARIABLER
-# ============================================================
 
 LEVEL_COLUMNS = {
 
@@ -447,10 +332,6 @@ for column, prefix in LEVEL_COLUMNS.items():
         prefix
     )
 
-
-# ============================================================
-# 12. COUNT-VARIABLER
-# ============================================================
 
 COUNT_COLUMNS = {
 
@@ -545,16 +426,6 @@ for column, prefix in COUNT_COLUMNS.items():
         prefix
     )
 
-
-# ============================================================
-# 13. KONTROLLERA RESULTATET
-# ============================================================
-
-print("\n==========================================")
-print("KONTROLL")
-print("==========================================")
-
-
 for column in df.columns:
 
     print(
@@ -568,19 +439,10 @@ for column in df.columns:
         .to_string()
     )
 
-
-# ============================================================
-# 14. KONTROLLERA NUMERISKA VÄRDEN
-# ============================================================
-
 numeric_columns = df.select_dtypes(
     include="number"
 ).columns.tolist()
 
-
-print("\n==========================================")
-print("NUMERISKA VÄRDEN")
-print("==========================================")
 
 
 if numeric_columns:
@@ -597,15 +459,6 @@ else:
     print(
         "Alla numeriska värden är konverterade."
     )
-
-
-# ============================================================
-# 15. KONTROLLERA UNKNOWN
-# ============================================================
-
-print("\n==========================================")
-print("UNKNOWN-KONTROLL")
-print("==========================================")
 
 
 for column in df.columns:
@@ -627,26 +480,12 @@ for column in df.columns:
             "unknown"
         )
 
-
-# ============================================================
-# 16. SPARA
-# ============================================================
-
 df.to_excel(
 
     output_file,
 
     index=False
 )
-
-
-# ============================================================
-# 17. KLART
-# ============================================================
-
-print("\n==========================================")
-print("KLART!")
-print("==========================================")
 
 print(
     "Fil sparad:"
