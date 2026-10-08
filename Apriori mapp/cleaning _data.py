@@ -2,143 +2,41 @@ import pandas as pd
 from pathlib import Path
 import numpy as np
 
-folder = Path(__file__).resolve().parent
-
+folder = Path(__file__).resolve().parent #Finding the right folder
 input_file = folder / "testdatatest.xlsx"
 output_file = folder / "färdigskit.xlsx"
 
 df = pd.read_excel(input_file)
 
-print("Antal rader:", len(df))
-print("Antal kolumner:", len(df.columns))
-
-df.columns = (
-    df.columns
-    .astype(str)
-    .str.strip()
-)
-
-column_fixes = {
-
-    "Clls Unique People S-H":
-        "Calls Unique People S-H"
-}
-
-df.rename(
-    columns=column_fixes,
-    inplace=True
-)
+print("Original rows:", len(df))
+print("Original columns:", len(df.columns))
 
 if "user" in df.columns:
-
-    df.drop(
-        columns=["user"],
-        inplace=True
-    )
-
-def clean_numeric(series):
-
-    # Om det redan är numeriskt
-    if pd.api.types.is_numeric_dtype(series):
-
-        return pd.to_numeric(
-            series,
-            errors="coerce"
-        )
+    df.drop(columns=["user"], inplace=True) #removes the user since the id is not important
 
 
-    # Gör om till text
-    cleaned = (
-        series
-        .astype(str)
-        .str.strip()
-    )
+df["gender"] = df["gender"].map({0: "boy", 1: "girl"}) #converts the gender into texts where 0=boy och 1=girl
 
-
-    # Hantera vanliga Excel-format
-    cleaned = (
-        cleaned
-        .str.replace(",", ".", regex=False)
-        .str.replace(" ", "", regex=False)
-    )
-
-
-    # Tomma värden
-    cleaned = cleaned.replace(
-        ["", "nan", "None", "null", "NULL"],
-        np.nan
-    )
-
-
-    return pd.to_numeric(
-        cleaned,
-        errors="coerce"
-    )
-
-gender = clean_numeric(
-    df["gender"]
-)
-
-
-df["gender"] = gender.map({
-
-    0: "boy",
-
-    1: "girl"
-})
 
 def categorize_count(series, prefix):
 
-    values = clean_numeric(series)
+    values = series.copy()
 
+    result = pd.Series(index=series.index, dtype="object")
 
-    result = pd.Series(
-        index=series.index,
-        dtype="object"
-    )
+    missing = values.isna() #handling missing values, if there are any they will be marked as unknown
+    zero = values == 0 #handling zero values
+    result.loc[zero] = ("no" + prefix) #if it is a zero, mark it as no so we can remove the 0-values
 
-    missing = values.isna()
-
-
-    zero = values == 0
-
-    result.loc[zero] = (
-        "no" + prefix
-    )
-
+    #Find positive values
     positive = values > 0
-
     positive_values = values.loc[positive]
 
-
-    if len(positive_values) == 0:
-
-        result.loc[missing] = (
-            "unknown" + prefix
-        )
-
-        return result
-
-    if positive_values.nunique() == 1:
-
-        result.loc[positive] = (
-            "middle" + prefix
-        )
-
-        result.loc[missing] = (
-            "unknown" + prefix
-        )
-
-        return result
-
+    #Divide positive values into five groups, based on the quantiles of the positive values
     try:
-
         categories = pd.qcut(
-
             positive_values,
-
             q=5,
-
             labels=[
                 "veryfew" + prefix,
                 "few" + prefix,
@@ -146,23 +44,15 @@ def categorize_count(series, prefix):
                 "many" + prefix,
                 "verymany" + prefix
             ],
+            duplicates="drop")
 
-            duplicates="drop"
-        )
-
-
-        result.loc[positive] = (
-            categories.astype(str)
-        )
+        result.loc[positive] = (categories.astype(str))
 
 
+    #If qcut cannot create five groups, use ranking
     except ValueError:
 
-        ranks = positive_values.rank(
-            method="first",
-            pct=True
-        )
-
+        ranks = positive_values.rank(method="first", pct=True)
 
         result.loc[positive] = ranks.apply(
 
@@ -183,120 +73,15 @@ def categorize_count(series, prefix):
             else "verymany" + prefix
         )
 
-    result.loc[missing] = (
-        "unknown" + prefix
-    )
-
+    #mark missing values as unknown
+    result.loc[missing] = ("unknown" + prefix)
 
     return result
 
-def categorize_level(series, prefix):
+COLUMNS = {
 
-    values = clean_numeric(series)
-
-
-    result = pd.Series(
-        index=series.index,
-        dtype="object"
-    )
-
-    zero = values == 0
-
-    result.loc[zero] = (
-        "no" + prefix
-    )
-
-    positive = values > 0
-
-    positive_values = values.loc[positive]
-
-    if len(positive_values) == 0:
-
-        result.loc[values.isna()] = (
-            "unknown" + prefix
-        )
-
-        return result
-
-    try:
-
-        categories = pd.qcut(
-
-            positive_values,
-
-            q=5,
-
-            labels=[
-                "verylow" + prefix,
-                "low" + prefix,
-                "middle" + prefix,
-                "high" + prefix,
-                "veryhigh" + prefix
-            ],
-
-            duplicates="drop"
-        )
-
-
-        result.loc[positive] = (
-            categories.astype(str)
-        )
-
-
-    except ValueError:
-
-        ranks = positive_values.rank(
-            method="first",
-            pct=True
-        )
-
-
-        result.loc[positive_values.index] = ranks.apply(
-
-            lambda x:
-
-            "verylow" + prefix
-            if x <= 0.20
-
-            else "low" + prefix
-            if x <= 0.40
-
-            else "middle" + prefix
-            if x <= 0.60
-
-            else "high" + prefix
-            if x <= 0.80
-
-            else "veryhigh" + prefix
-        )
-
-    result.loc[values.isna()] = (
-        "unknown" + prefix
-    )
-
-
-    return result
-
-
-df["amount_fbf_school"] = categorize_count(
-
-    df["amount_fbf_school"],
-
-    "fb"
-)
-
-
-df.rename(
-
-    columns={
-        "amount_fbf_school": "fb"
-    },
-
-    inplace=True
-)
-
-
-LEVEL_COLUMNS = {
+    "amount_fbf_school":
+        "fb",
 
     "BT_Interactions S-H":
         "btint_S-H",
@@ -314,28 +99,8 @@ LEVEL_COLUMNS = {
         "calldur_S-H",
 
     "Calls Duration O-S-H":
-        "calldur_O-S-H"
-}
+        "calldur_O-S-H",
 
-
-for column, prefix in LEVEL_COLUMNS.items():
-
-    print(
-        "Kategoriserar:",
-        column
-    )
-
-    df[column] = categorize_level(
-
-        df[column],
-
-        prefix
-    )
-
-
-COUNT_COLUMNS = {
-
-    # Bluetooth
     "BT_Unique people S-H":
         "btunq_S-H",
 
@@ -348,8 +113,6 @@ COUNT_COLUMNS = {
     "BT_Outsiders O-S-H":
         "btout_O-S-H",
 
-
-    # Calls S-H
     "Calls Made S-H":
         "callsmade_S-H",
 
@@ -365,8 +128,6 @@ COUNT_COLUMNS = {
     "Calls Unique People S-H":
         "callsunq_S-H",
 
-
-    # Calls O-S-H
     "Calls Made O-S-H":
         "callsmade_O-S-H",
 
@@ -382,8 +143,6 @@ COUNT_COLUMNS = {
     "Calls Unique People O-S-H":
         "callsunq_O-S-H",
 
-
-    # SMS S-H
     "SMS sent S-H":
         "smssent_S-H",
 
@@ -396,8 +155,6 @@ COUNT_COLUMNS = {
     "SMS conversation S-H":
         "smsconv_S-H",
 
-
-    # SMS O-S-H
     "SMS sent O-S-H":
         "smssent_O-S-H",
 
@@ -412,95 +169,27 @@ COUNT_COLUMNS = {
 }
 
 
-for column, prefix in COUNT_COLUMNS.items():
-
-    print(
-        "Kategoriserar:",
-        column
-    )
-
-    df[column] = categorize_count(
-
-        df[column],
-
-        prefix
-    )
-
-for column in df.columns:
-
-    print(
-        f"\n{column}"
-    )
-
-    print(
-        df[column]
-        .value_counts(dropna=False)
-        .head(10)
-        .to_string()
-    )
-
-numeric_columns = df.select_dtypes(
-    include="number"
-).columns.tolist()
+#Categorize all variables
+for column, prefix in COLUMNS.items():
+    df[column] = categorize_count(df[column], prefix)
 
 
+#Rename Facebook column
+df.rename(
+    columns={
+        "amount_fbf_school": "fb"
+    },
+    inplace=True
+)
 
-if numeric_columns:
-
-    print(
-        "Följande är fortfarande numeriska:"
-    )
-
-    for column in numeric_columns:
-        print("-", column)
-
-else:
-
-    print(
-        "Alla numeriska värden är konverterade."
-    )
-
-
-for column in df.columns:
-
-    unknown_count = (
-        df[column]
-        .astype(str)
-        .str.startswith("unknown")
-        .sum()
-    )
-
-
-    if unknown_count > 0:
-
-        print(
-            column,
-            ":",
-            unknown_count,
-            "unknown"
-        )
 
 df.to_excel(
-
     output_file,
-
     index=False
 )
 
-print(
-    "Fil sparad:"
-)
+print("\nFile saved:")
+print(output_file)
 
-print(
-    output_file
-)
-
-print(
-    "\nAntal rader:",
-    len(df)
-)
-
-print(
-    "Antal kolumner:",
-    len(df.columns)
-)
+print("\nRows:", len(df))
+print("Columns:", len(df.columns))
