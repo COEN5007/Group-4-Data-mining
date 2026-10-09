@@ -1,12 +1,23 @@
 import pandas as pd
 from pathlib import Path
 import numpy as np
+from sklearn.cluster import KMeans #Gemma lade till för att kunna göra kmeans clustering
+from sklearn.metrics import silhouette_score #Gemma lade till
 
 folder = Path(__file__).resolve().parent #Finding the right folder
 input_file = folder / "testdatatest.xlsx"
 output_file = folder / "färdigskit.xlsx"
 
 df = pd.read_excel(input_file)
+
+# Kontrollera exakt vilka kolumnnamn som finns i testdatatest.xlsx
+print("\nCOLUMN NAMES IN testdatatest.xlsx:")
+print(df.columns.tolist())
+
+# (Gemma) lägger till för att kontrollera att FAMILIES stämmer
+corr = df.select_dtypes("number").corr(method="spearman")
+pairs = corr.where(np.triu(np.ones(corr.shape), 1).astype(bool)).stack()
+print(pairs[pairs.abs() > 0.8].sort_values(ascending=False))
 
 print("Original rows:", len(df))
 print("Original columns:", len(df.columns))
@@ -17,8 +28,53 @@ if "user" in df.columns:
 
 df["gender"] = df["gender"].map({0: "boy", 1: "girl"}) #converts the gender into texts where 0=boy och 1=girl
 
+#=============================== Gemma la till för att kunna göra kmeans clustering
+COUNT_LABELS = {
+    2: ["few", "many"],
+    3: ["few", "middle", "many"],
+    4: ["veryfew", "few", "many", "verymany"],
+    5: ["veryfew", "few", "middle", "many", "verymany"],
+}
+LEVEL_LABELS = {
+    2: ["low", "high"],
+    3: ["low", "middle", "high"],
+    4: ["verylow", "low", "high", "veryhigh"],
+    5: ["verylow", "low", "middle", "high", "veryhigh"],
+}
 
-def categorize_count(series, prefix):
+def natural_cut(positive_values, prefix, label_sets,       
+                k_range=(3, 4), log=True, min_share=0.10):
+    # Delar positiva värden i naturliga bins med 1D k-means (på log1p).
+    # k väljs sedan via silhouette, men bara bland k där minsta bin >= min_share.
+    x = np.log1p(positive_values.astype(float)) if log else positive_values.astype(float)
+    X = x.to_numpy().reshape(-1, 1)
+
+    best = None
+    for k in range(k_range[0], k_range[1] + 1):
+        if len(np.unique(X)) <= k:
+            break
+        km = KMeans(n_clusters=k, n_init=10, random_state=42).fit(X)
+        shares = np.bincount(km.labels_, minlength=k) / len(X)
+        if shares.min() < min_share:
+            continue
+        score = silhouette_score(X, km.labels_)
+        if best is None or score > best[0]:
+            best = (score, k, km)
+
+    if best is None:  # fallback: tertiler (som kvantiler men tre grupper och med rangordning)
+        cats = pd.qcut(positive_values.rank(method="first"), q=3, labels=label_sets[3])
+        return cats.astype(str) + prefix
+
+    _, k, km = best
+    order = np.argsort(km.cluster_centers_.ravel())   # sortera bins låg -> hög
+    rank = np.empty(k, dtype=int)
+    rank[order] = np.arange(k)
+    names = np.array(label_sets[k])
+    return pd.Series(names[rank[km.labels_]], index=positive_values.index) + prefix
+#=============================== 
+
+# (Gemma) Jag kommenterar ut den gamla kategoriseringsfunktionen eftersom jag har gjort en ny som använder kmeans clustering istället för qcut.
+"""def categorize_count(series, prefix):
 
     values = series.copy()
 
@@ -76,7 +132,7 @@ def categorize_count(series, prefix):
     #mark missing values as unknown
     result.loc[missing] = ("unknown" + prefix)
 
-    return result
+    return result"""
 
 COLUMNS = {
 
@@ -168,11 +224,29 @@ COLUMNS = {
         "smsconv_O-S-H"
 }
 
-
-#Categorize all variables
+# (Gemma) kommenterar ut den undre delen och gör en ny
+"""#Categorize all variables
 for column, prefix in COLUMNS.items():
     df[column] = categorize_count(df[column], prefix)
+"""
 
+# (Gemma) Nedan följer ny kod för kmeans clustering istället för qcut.
+def categorize_count(series, prefix, label_sets=COUNT_LABELS):
+    values = series.copy()
+    result = pd.Series(index=series.index, dtype="object")
+
+    missing = values.isna() | (values < 0)     # -1 = ingen data
+    zero = values == 0
+    positive = values > 0
+
+    result.loc[zero] = "no" + prefix
+    result.loc[missing] = "unknown" + prefix
+    result.loc[positive] = natural_cut(values.loc[positive], prefix, label_sets)
+    return result
+
+for column, prefix in COLUMNS.items():
+    label_sets = LEVEL_LABELS if "Duration" in column else COUNT_LABELS
+    df[column] = categorize_count(df[column], prefix, label_sets)
 
 #Rename Facebook column
 df.rename(
