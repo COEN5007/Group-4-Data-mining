@@ -15,6 +15,8 @@ print("\nCOLUMN NAMES IN testdatatest.xlsx:")
 print(df.columns.tolist())
 
 # (Gemma) lägger till för att kontrollera att FAMILIES stämmer
+#delar upp clusters på naturliga sätt 
+
 corr = df.select_dtypes("number").corr(method="spearman")
 pairs = corr.where(np.triu(np.ones(corr.shape), 1).astype(bool)).stack()
 print(pairs[pairs.abs() > 0.8].sort_values(ascending=False))
@@ -136,92 +138,63 @@ def natural_cut(positive_values, prefix, label_sets,
 
 COLUMNS = {
 
-    "amount_fbf_school":
-        "fb",
+    "amount_fbf_school",
 
-    "BT_Interactions S-H":
-        "btint_S-H",
+    "BT_Interactions S-H",
 
-    "BT_Average Duration S-H":
-        "btavgdur_S-H",
+    "BT_Average Duration S-H",
 
-    "BT_Interactions O-S-H":
-        "btint_O-S-H",
+    "BT_Interactions O-S-H",
 
-    "BT_Average Duration O-S-H":
-        "btavgdur_O-S-H",
+    "BT_Average Duration O-S-H",
 
-    "Calls_Duration S-H":
-        "calldur_S-H",
+    "Calls_Duration S-H",
 
-    "Calls Duration O-S-H":
-        "calldur_O-S-H",
+    "Calls Duration O-S-H",
 
-    "BT_Unique people S-H":
-        "btunq_S-H",
+    "BT_Unique people S-H",
 
-    "BT_Outsiders S-H":
-        "btout_S-H",
+    "BT_Outsiders S-H",
 
-    "BT_Unique people O-S-H":
-        "btunq_O-S-H",
+    "BT_Unique people O-S-H",
 
-    "BT_Outsiders O-S-H":
-        "btout_O-S-H",
+    "BT_Outsiders O-S-H",
 
-    "Calls Made S-H":
-        "callsmade_S-H",
+    "Calls Made S-H",
 
-    "Calls Received S-H":
-        "callsrec_S-H",
+    "Calls Received S-H",
 
-    "Calls Missed As Caller S-H":
-        "misscall_S-H",
+    "Calls Missed As Caller S-H",
 
-    "Calls Missed As Callee S-H":
-        "misscallee_S-H",
+    "Calls Missed As Callee S-H",
 
-    "Calls Unique People S-H":
-        "callsunq_S-H",
+    "Calls Unique People S-H",
 
-    "Calls Made O-S-H":
-        "callsmade_O-S-H",
+    "Calls Made O-S-H",
 
-    "Calls Received O-S-H":
-        "callsrec_O-S-H",
+    "Calls Received O-S-H",
 
-    "Calls Missed As Caller O-S-H":
-        "misscall_O-S-H",
+    "Calls Missed As Caller O-S-H",
 
-    "Calls Missed As Callee O-S-H":
-        "misscallee_O-S-H",
+    "Calls Missed As Callee O-S-H",
 
-    "Calls Unique People O-S-H":
-        "callsunq_O-S-H",
+    "Calls Unique People O-S-H",
 
-    "SMS sent S-H":
-        "smssent_S-H",
+    "SMS sent S-H",
 
-    "SMS received S-H":
-        "smsrec_S-H",
+    "SMS received S-H",
 
-    "SMS unique people S-H":
-        "smsunq_S-H",
+    "SMS unique people S-H",
 
-    "SMS conversation S-H":
-        "smsconv_S-H",
+    "SMS conversation S-H",
 
-    "SMS sent O-S-H":
-        "smssent_O-S-H",
+    "SMS sent O-S-H",
 
-    "SMS received O-S-H":
-        "smsrec_O-S-H",
+    "SMS received O-S-H",
+    
+    "SMS unique people O-S-H",
 
-    "SMS unique people O-S-H":
-        "smsunq_O-S-H",
-
-    "SMS conversation O-S-H":
-        "smsconv_O-S-H"
+    "SMS conversation O-S-H",
 }
 
 # (Gemma) kommenterar ut den undre delen och gör en ny
