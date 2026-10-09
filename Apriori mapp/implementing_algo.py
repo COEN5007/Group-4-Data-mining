@@ -55,82 +55,23 @@ print("Number of items:", len(te.columns_)) #Checking ammount of items, should b
 # (Gemma) FAMILIES: Kolumner med samma typ av aktivitet
 FAMILIES = {
 
-    "BT_Interactions": [
-        "BT_Interactions S-H",
-        "BT_Interactions O-S-H",
-    ],
-
-    "BT_Average_Duration": [
-        "BT_Average Duration S-H",
-        "BT_Average Duration O-S-H",
-    ],
-
-    "BT_Unique_People": [
-        "BT_Unique people S-H",
-        "BT_Unique people O-S-H",
-    ],
-
-    "BT_Outsiders": [
-        "BT_Outsiders S-H",
-        "BT_Outsiders O-S-H",
-    ],
-
-    "Calls_Duration": [
-        "Calls_Duration S-H",
-        "Calls Duration O-S-H",
-    ],
-
-    "Calls_Made": [
-        "Calls Made S-H",
-        "Calls Made O-S-H",
-    ],
-
-    "Calls_Received": [
-        "Calls Received S-H",
-        "Calls Received O-S-H",
-    ],
-
-    "Calls_Missed_As_Caller": [
-        "Calls Missed As Caller S-H",
-        "Calls Missed As Caller O-S-H",
-    ],
-
-    "Calls_Missed_As_Callee": [
-        "Calls Missed As Callee S-H",
-        "Calls Missed As Callee O-S-H",
-    ],
-
-    "Calls_Unique_People": [
-        "Calls Unique People S-H",
-        "Calls Unique People O-S-H",
-    ],
-
-    "SMS_Sent": [
-        "SMS sent S-H",
-        "SMS sent O-S-H",
-    ],
-
-    "SMS_Received": [
-        "SMS received S-H",
-        "SMS received O-S-H",
-    ],
-
-    "SMS_Unique_People": [
-        "SMS unique people S-H",
-        "SMS unique people O-S-H",
-    ],
-
-    "SMS_Conversation": [
-        "SMS conversation S-H",
-        "SMS conversation O-S-H",
-    ],
+    "sms":   ["SMS sent S-H", "SMS received S-H", "SMS unique people S-H", "SMS conversation S-H",
+              "SMS sent O-S-H", "SMS received O-S-H", "SMS unique people O-S-H", "SMS conversation O-S-H"],
+    "calls": ["Calls Made S-H", "Calls Received S-H", "Calls Missed As Caller S-H",
+              "Calls Missed As Callee S-H", "Calls Unique People S-H", "Calls_Duration S-H",
+              "Calls Made O-S-H", "Calls Received O-S-H", "Calls Missed As Caller O-S-H",
+              "Calls Missed As Callee O-S-H", "Calls Unique People O-S-H", "Calls Duration O-S-H"],
+    "bt":    ["BT_Interactions S-H", "BT_Average Duration S-H", "BT_Unique people S-H", "BT_Outsiders S-H",
+              "BT_Interactions O-S-H", "BT_Average Duration O-S-H", "BT_Unique people O-S-H", "BT_Outsiders O-S-H"],
+    "fb":    ["fb"],
+    "gender": ["gender"],
 }
 
 #=============================== (Gemma) Lade till för att kunna göra kmeans clustering
 COL_TO_FAMILY = {col: fam for fam, cols in FAMILIES.items() for col in cols}
 
 def family_of(item):
-    col = item.split("=", 1)[0]
+    col = item.split("=", 1)[0]             # (Gemma) Split the item into column and value, to find the family of the column (behövs den?)
     return COL_TO_FAMILY.get(col, col)       # okänd kolumn = egen familj
 
 def one_per_family(itemset):
@@ -244,7 +185,7 @@ MIN_RULE_LENGTH = 3 #Minimum total to make a rule, must be a rule with at least 
 
 MIN_SUPPORT_COUNT = 5 #Minimal ammount to support the rule, might be removed
 
-#======================== (Gemma) Added for stability test
+#======================== (Gemma) Added for stability test again
 import random
 
 random.seed(42)
@@ -453,8 +394,8 @@ else:
             "support": "Support",
             "confidence": "Confidence",
             "lift": "Lift",
-            "leverage": "Leverage", #Gemma
-            "leverage_count": "Leverage count", #Gemma
+            "leverage": "Leverage", #Gemma added
+            "leverage_count": "Leverage count", #Gemma added
             "rule_length": "Rule length",
             "support_count": "Support count"})
 
