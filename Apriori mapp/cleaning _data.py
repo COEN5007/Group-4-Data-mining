@@ -75,66 +75,7 @@ def natural_cut(positive_values, prefix, label_sets,
     return pd.Series(names[rank[km.labels_]], index=positive_values.index) + prefix
 #=============================== 
 
-# (Gemma) Jag kommenterar ut den gamla kategoriseringsfunktionen eftersom jag har gjort en ny som använder kmeans clustering istället för qcut.
-"""def categorize_count(series, prefix):
 
-    values = series.copy()
-
-    result = pd.Series(index=series.index, dtype="object")
-
-    missing = values.isna() #handling missing values, if there are any they will be marked as unknown
-    zero = values == 0 #handling zero values
-    result.loc[zero] = ("no" + prefix) #if it is a zero, mark it as no so we can remove the 0-values
-
-    #Find positive values
-    positive = values > 0
-    positive_values = values.loc[positive]
-
-    #Divide positive values into five groups, based on the quantiles of the positive values
-    try:
-        categories = pd.qcut(
-            positive_values,
-            q=5,
-            labels=[
-                "veryfew" + prefix,
-                "few" + prefix,
-                "middle" + prefix,
-                "many" + prefix,
-                "verymany" + prefix
-            ],
-            duplicates="drop")
-
-        result.loc[positive] = (categories.astype(str))
-
-
-    #If qcut cannot create five groups, use ranking
-    except ValueError:
-
-        ranks = positive_values.rank(method="first", pct=True)
-
-        result.loc[positive] = ranks.apply(
-
-            lambda x:
-
-            "veryfew" + prefix
-            if x <= 0.20
-
-            else "few" + prefix
-            if x <= 0.40
-
-            else "middle" + prefix
-            if x <= 0.60
-
-            else "many" + prefix
-            if x <= 0.80
-
-            else "verymany" + prefix
-        )
-
-    #mark missing values as unknown
-    result.loc[missing] = ("unknown" + prefix)
-
-    return result"""
 
 COLUMNS = {
 
@@ -197,23 +138,16 @@ COLUMNS = {
     "SMS conversation O-S-H",
 }
 
-# (Gemma) kommenterar ut den undre delen och gör en ny
-"""#Categorize all variables
-for column, prefix in COLUMNS.items():
-    df[column] = categorize_count(df[column], prefix)
-"""
 
 # (Gemma) Nedan följer ny kod för kmeans clustering istället för qcut.
 def categorize_count(series, prefix, label_sets=COUNT_LABELS):
     values = series.copy()
     result = pd.Series(index=series.index, dtype="object")
 
-    missing = values.isna() | (values < 0)     # -1 = ingen data
     zero = values == 0
     positive = values > 0
 
     result.loc[zero] = "no" + prefix
-    result.loc[missing] = "unknown" + prefix
     result.loc[positive] = natural_cut(values.loc[positive], prefix, label_sets)
     return result
 
