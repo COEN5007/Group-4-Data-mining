@@ -145,11 +145,6 @@ users["sms received O-S-H"] = users["sms received O-S-H"].astype(int)
 
 
 
-
-
-
-
-
 # need both sent and received sms because we want everyone
 # the user has had sms contact with
 
@@ -216,7 +211,7 @@ users["conversation S-H"] = users["conversation S-H"].astype(int)
 # conversations off school hours
 offschool_conversations = all_conversations[ all_conversations["period"] == "O-S-H"]
 conversation_osh = offschool_conversations.groupby("user").size()
-users["conversation O-S-H"] = users["user"].map(conversation_osh)
+users["conversation O-S-H"] = users["user"].map(conversation_osh) 
 users["conversation O-S-H"] = users["conversation O-S-H"].fillna(0)
 users["conversation O-S-H"] = users["conversation O-S-H"].astype(int)
 
