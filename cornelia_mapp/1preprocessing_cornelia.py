@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import os
+import matplotlib as plt
 
 
 # plan is to make a csv file that preprocessed the final total list from october 2nd. 
@@ -26,18 +27,55 @@ print(df.head(10))
 # x are our variables, the fit method, and then transofrm to 
 X = df.drop(['user', 'gender'], axis=1)
 
+
+# scaling
 # clustering is based on distance between points and centroid, so having very spread values confuses our model 
-# scaling makes everything in a smaller scale. Our 0's are acutal values and not NULL values, therefore MinMax-scaler is the best alternative
+# https://numpy.org/doc/stable/reference/generated/numpy.log1p.html
+# Need to use Log1p before MinMaxScaler cause we have a large variation in each column.
+# Log1p does also leave 0 as a 0, cause log(0+1) is always 0. 
+X_log = np.log1p(X)  
+
+
+# scaling makes everything in a smaller scale. Our 0's are acutal values and not NULL values, therefore MinMax-scaler is the best alternative when scaling between the columns
 scaler = MinMaxScaler()
-scaler.fit(X)
+scaler.fit(X_log)
 # our scaled data is turnet into an numpy array but it's going to be re-transformed back into a dataframe soon 
-X_scaled = scaler.transform(X)
+X_scaled = scaler.transform(X_log)
 print(X_scaled) 
+# now, all our values are between 0 and 1
 
 
-# clustering
+# clustering 
+#k-means returns a scatter plots with clusters
 # how do we even know how many clusters there is? 
-# elbow rule - 
+# elbow rule https://www.youtube.com/watch?v=lP7TOc1DnaI 
+# elbow is a visual way of looking at inertias of different numbers of clusters 
+
+#tar tillbaks X till så som den var innan, en dataframe och INTE en array
+X = pd.DataFrame(X_scaled)
+# centroid is center of a cluster
+# sum of the squred distances between every datapoint and it's corresponding centroid
+# the closer all points are to the centroid the smaller the inetria is 
+# small inertia = stornger cluster 
+# we could have a centroid for all datapoints, but we don't want this! This is why we use the elbow rule, to find the amount of clusters. 
+inertias = []
+
+for k in range(1, 11):
+    model = KMeans(n_clusters=k)
+    y = model.fit_predict(X)
+    inertias.append(model.inertia_)
+
+plt.figure(figsize=(12, 8))
+plt.plot(range(1, 11), inertias, marker='o')
+plt.xticks(ticks=range(1, 11), labels=range(1, 11))
+plt.title('Inertia vs Number of Clusters')
+
+plt.tight_layout()
+plt.show()
+
+
+
+
 
 
 
