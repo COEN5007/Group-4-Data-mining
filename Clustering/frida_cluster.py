@@ -11,7 +11,7 @@ from sklearn.metrics import silhouette_score
 from sklearn.decomposition import PCA
 
 # Excel-filen
-file_path = "cluster_mpunkt.xlsx"
+file_path = "unclustered_file.xlsx"
 
 # Mapp där alla resultat sparas
 output_folder = Path("fäääärdig")
