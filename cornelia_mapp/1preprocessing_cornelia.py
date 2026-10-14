@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.cluster import KMeans
 import os
-import matplotlib as plt
+import matplotlib.pyplot as plt
+import seaborn as sns 
 
 
 # plan is to make a csv file that preprocessed the final total list from october 2nd. 
@@ -57,21 +59,77 @@ X = pd.DataFrame(X_scaled)
 # sum of the squred distances between every datapoint and it's corresponding centroid
 # the closer all points are to the centroid the smaller the inetria is 
 # small inertia = stornger cluster 
-# we could have a centroid for all datapoints, but we don't want this! This is why we use the elbow rule, to find the amount of clusters. 
+# we could have a centroid for all datapoints, but we don't want this! This is why we use the elbow rule, to find the right amount of clusters. 
 inertias = []
 
 for k in range(1, 11):
-    model = KMeans(n_clusters=k)
+    # https://scikit-learn.org/stable/common_pitfalls.html this is because KMeans starts different each time the code runs, with seed 
+
+    model = KMeans(n_clusters=k, random_state=42, n_init=10)
     y = model.fit_predict(X)
     inertias.append(model.inertia_)
 
-plt.figure(figsize=(12, 8))
+
+# vi vill plotta våra inertia så vi hittar vår sweet spot. 
+
+"""plt.figure(figsize=(12, 8))
 plt.plot(range(1, 11), inertias, marker='o')
 plt.xticks(ticks=range(1, 11), labels=range(1, 11))
 plt.title('Inertia vs Number of Clusters')
 
 plt.tight_layout()
+plt.show()"""
+
+
+# elbow set to 3 
+# no when we know our elbow, we can make a new model with our specified K = 3 clusters. 
+# fit and predict on our scaled data and assign it to y that is a number 0, 1, 2 that corresponds to the cluster the data corresponds to. 
+
+model = KMeans (n_clusters=3)
+y = model.fit_predict(X_scaled)
+print(y)
+
+
+# adding a new column to our 
+# we dont need to use the scaled data a nymore, we want the insights
+# therefore we use the dataset FinalTotalList2oct and labelling all 672 users into a cluster
+
+df['CLUSTER'] = y + 1
+print(df['CLUSTER'].value_counts())
+
+
+# lets do an analysis of what the clusters are showing 
+# look at the numeric data and datapoints 
+# group by clusters and plot the data with bar charts 
+
+# bar charts gives us important information among the clusters 
+#are the charts similar to each other or do they look different? 
+"""numeric_columns = df.select_dtypes(include=np.number).drop(['user', 'gender', 'CLUSTER'], axis=1).columns
+
+fig = plt.figure(figsize=(25, 30))
+for i, column in enumerate(numeric_columns):
+    df_plot = df.groupby('CLUSTER')[column].mean()
+    ax = fig.add_subplot(6, 5, i+1)
+    ax.bar(df_plot.index, df_plot, color=sns.color_palette('Set1'), alpha=0.6)
+    ax.set_title(f'Average {column.title()} per Cluster', alpha=0.5)
+    ax.xaxis.grid(False)
+
+plt.tight_layout()
+plt.show()"""
+
+#plotting further to find more interesting relations 
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 8))
+sns.scatterplot(x='amount_fbf_school', y='SMS unique people O-S-H', hue='CLUSTER', data=df, palette='tab10', alpha=0.4, ax=ax1)
+sns.scatterplot(x='Calls Unique People O-S-H', y='BT_Unique people O-S-H', hue='CLUSTER', data=df, palette='tab10', alpha=0.4, ax=ax2, legend=False)
+sns.scatterplot(x='SMS unique people O-S-H', y='BT_Unique people O-S-H', hue='CLUSTER', data=df, palette='tab10', alpha=0.4, ax=ax3, legend=False)
+sns.scatterplot(x='amount_fbf_school', y='BT_Unique people O-S-H', hue='CLUSTER', data=df, palette='tab10', alpha=0.4, ax=ax4, legend=False)
+
+plt.tight_layout()
 plt.show()
+
+
+
+
 
 
 
