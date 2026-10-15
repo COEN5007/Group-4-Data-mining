@@ -33,7 +33,7 @@ for _, row in df.iterrows():
         if pd.notna(value): #To remove the values that we do not want
 
             value = str(value).strip()
-            if value.lower().startswith(("no", "unknown")): #Remove the empty values, all that starts with "no", (Gemma): also "unknown" will be removed, since they are not important for the algorithm
+            if value.lower().startswith(("no")): #Remove the empty values, all that starts with "no"
                 continue
 
             transaction.append(f"{col}={value}") #Adds the value that we want in a new column with name and value
