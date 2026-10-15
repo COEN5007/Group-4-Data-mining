@@ -52,6 +52,7 @@ bt["time_diff"] = (
       .diff()
 )
 
+#sattes som "interaction" och durartion forsätter om intercationer sker jämnt mellan 15 minutet 
 bt["new_interaction"] = (
     bt["time_diff"].isna() |
     (bt["time_diff"] > 600)
