@@ -71,7 +71,7 @@ FAMILIES = {
 COL_TO_FAMILY = {col: fam for fam, cols in FAMILIES.items() for col in cols}
 
 def family_of(item):
-    col = item.split("=", 1)[0]             # (Gemma) Split the item into column and value, to find the family of the column (behövs den?)
+    col = item.split("=", 1)[0]             # (Gemma) Split the item into column and value, to find the family of the column
     return COL_TO_FAMILY.get(col, col)       # okänd kolumn = egen familj
 
 def one_per_family(itemset):
@@ -165,9 +165,10 @@ def run_apriori_on_transactions(transactions_subset):
         rules_half["support"] * number_of_transactions_half
     ).round().astype(int)
 
-    rules_half = rules_half[
-        rules_half["support_count"] >= MIN_SUPPORT_COUNT
-    ]
+# Nytt, jag tar bort
+    #rules_half = rules_half[
+    #    rules_half["support_count"] >= MIN_SUPPORT_COUNT
+    #]
 
     rules_half = rules_half.drop_duplicates(
         subset=["antecedents", "consequents"]
@@ -177,13 +178,12 @@ def run_apriori_on_transactions(transactions_subset):
 #==========================================
 
 #Values that we play around with, keep lift at 1.00 at least
-MIN_SUPPORT = 0.05 # (Gemma) Changed from 0.01 to 0.05, since support favours rules that are more common
+MIN_SUPPORT = 0.03 # (Gemma) Changed from 0.01 to 0.05
 MIN_CONFIDENCE = 0.50
 MIN_LIFT = 1.2 # (Gemma) Changed from 1.0 to 1.2, since Lift favours rules that are less common
 
 MIN_RULE_LENGTH = 3 #Minimum total to make a rule, must be a rule with at least 2 ifs 
 
-MIN_SUPPORT_COUNT = 5 #Minimal ammount to support the rule, might be removed
 
 #======================== (Gemma) Added for stability test again
 import random
@@ -264,7 +264,7 @@ if not frequent_itemsets.empty: #If we have found itemsets, will here create the
     rules["support_count"] = (rules["support"] * number_of_transactions).round().astype(int)
 
     #Remove rules not meeting minimum support
-    rules = rules[rules["support_count"] >= MIN_SUPPORT_COUNT]
+    # rules = rules[rules["support_count"] >= MIN_SUPPORT_COUNT] (Nytt) 
 
     #Remove exact duplicate rules, since time no matter, remove if the if and then are same but different order
     rules = rules.drop_duplicates(subset=["antecedents", "consequents"])
